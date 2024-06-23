@@ -1,40 +1,57 @@
-import axios from 'axios';
-import  tar from 'tar';
-import bz2 from 'bzip2-maybe';
-import fs from 'fs';
-import { pipeline as pipelineCallback } from 'stream';
-import { promisify } from 'util';
+import axios from 'axios'
 import { fetchModelsList } from './fetchModelsList'
-import { modelsDir } from './modelsDir';
+import { env } from '../env';
+import fs from 'fs'
+import path from 'path';
+import { $ } from 'bun'
 
-// Promisify the pipeline function
-const pipeline = promisify(pipelineCallback);
 
-async function fetchAndExtractModel(url, outputDir) {
-    try {
-        // Create a readable stream from the URL
-        const response = await axios({
-            url,
-            method: 'GET',
-            responseType: 'stream'
-        });
+async function fetchAndExtractModel(url, outputDir, override = false) {
+    const filePath = await downloadFile(outputDir, url, override);
+    await extractFile(filePath, outputDir);
+}
 
-        // Ensure the output directory exists
-        if (!fs.existsSync(outputDir)) {
-            fs.mkdirSync(outputDir, { recursive: true });
-        }
-
-        // Pipe the response through bzip2 decompression and tar extraction
-        await pipeline(
-            response.data,
-            bz2(),
-            tar.extract({ cwd: outputDir })
-        );
-
-        console.log('Download and extraction complete.');
-    } catch (error) {
-        console.error('An error occurred:', error);
+async function downloadFile(outputDir: string, url: string, override = false) {
+    const fileName = url.split('/').pop() ?? "";
+    if (!fs.existsSync(outputDir)) {
+        fs.mkdirSync(outputDir, { recursive: true });
+        console.log(`Created directory ${outputDir}`);
     }
+
+    const filePath = path.join(outputDir, fileName);
+    if (fs.existsSync(filePath)) {
+        if (!override) {
+            console.log(`File ${fileName} already exists, skipping download.`);
+            return filePath;
+        }
+        else {
+            fs.unlinkSync(filePath);
+            console.log(`Overriding existing file ${fileName}.`);
+        }
+    }
+
+    console.log(`Downloading ${url} to ${filePath}`);
+
+    const writer = fs.createWriteStream(filePath);
+    const response = await axios({
+        url,
+        method: 'GET',
+        responseType: 'stream'
+    });
+
+    response.data.on('progress', (progress) => {
+        console.log(`Download progress: ${Math.round(progress.percent * 100)}%`);
+    });
+
+    response.data.pipe(writer);
+
+    await new Promise((resolve, reject) => {
+        writer.on('finish', resolve);
+        writer.on('error', reject);
+    });
+
+
+    return filePath;
 }
 
 export async function downloadModel(name) {
@@ -44,17 +61,25 @@ export async function downloadModel(name) {
         throw new Error(`Model ${name} not found`);
     }
     console.log("Downloading " + m.modelName);
-    await fetchAndExtractModel(m.url, modelsDir);
-    console.log(`Model ${m.modelName} downloaded and extracted to ${modelsDir}`);
+    await fetchAndExtractModel(m.url, env.MODELS_DIR);
+    console.log(`Model ${m.modelName} downloaded and extracted to ${env.MODELS_DIR}`);
 }
+async function extractFile(filePath: string, outputPath: string) {
+    console.log(`Extracting ${filePath} to ${outputPath} `);
+    // skip if folder already exists!
+    const folderName = path.basename(filePath, '.tar.bz2');
+    const folderPath = path.resolve(path.join(outputPath, folderName));
+    // log
+    console.log("foler path:", folderPath, {folderName,folderPath});
 
-const models = await fetchModelsList();
+    if (fs.existsSync(folderPath)) {
+        console.log(`Folder ${folderName} already exists, skipping extraction`);
+        return;
+    }
 
-for await (const m of models) {
-    const url = m.url;
-    const outputDir = './models/';
-
-    console.log("Downloading " + m.modelName);
-
-    await fetchAndExtractModel(url, outputDir);
+    try {
+        await $`tar -xvf ${filePath} -C ${outputPath}`
+    } catch (error) {
+        console.error('Error extracting file:', error)
+    }
 }

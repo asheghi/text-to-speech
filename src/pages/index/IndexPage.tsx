@@ -1,25 +1,32 @@
-import { Link } from "react-router-dom";
-import { trpc } from "../../api"
+import { useState } from "react";
+import { fetchUntilFirstByte } from "../../utils/fetchUntilFirstByte";
+import { textToFileName } from "../../utils/textToFilename";
+import { Form } from "./components/Form";
+import qs from 'qs'
+import { RequestState } from "./components/consts/RequestState";
+import { Player } from "./components/Player";
 
 export const IndexPage = (): JSX.Element => {
-    const wordsQuery = trpc.words.getWordsList.useQuery();
+    const [state, setState] = useState<RequestState | undefined>();
+    const [url, setUrl] = useState<string>();
+    const [filename, setFilename] = useState<string>();
 
-    if (wordsQuery.isPending) {
-        return <p>Loading...</p>
-    }
+    const handleFormSubmit = async function (params: { model: string; text: string; }): Promise<void> {
+        const query = qs.stringify(params)
+        const url = "/api/tts?" + query;
+        setState(RequestState.PENDING);
+        try {
+            await fetchUntilFirstByte(url);
+            setUrl(url);
+            setFilename(textToFileName(params.text) + '.wav')
+        } catch (error) {
+            setState(RequestState.FAILED);
+        }
+        setState(RequestState.SUCCESS);
+    };
 
-    if (wordsQuery.isError) {
-        return <p>Error</p>
-    }
-
-    return <main className="container mx-auto">
-        <div className="flex flex-col gap-1">
-            {wordsQuery.data?.map((word) => {
-                return <Link key={word._id} to={`/word/${word.word}`}>
-                    {word.word}
-                </Link>
-            })
-            }
-        </div>
+    return <main className="mx-auto container">
+        <Form isPending={state === RequestState.PENDING} onSubmit={handleFormSubmit} />
+        <Player className="py-2" url={url} state={state} filename={filename} />
     </main>
 }

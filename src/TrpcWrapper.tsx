@@ -9,7 +9,7 @@ function TrpcWrapper(props: { children: React.ReactNode }) {
     trpc.createClient({
       links: [
         httpBatchLink({
-          url: 'http://localhost:3003/trpc',
+          url: '/api/trpc',
           async headers() {
             return {
               authorization: 'tbd',

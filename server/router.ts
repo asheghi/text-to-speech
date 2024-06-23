@@ -1,9 +1,9 @@
 import { z } from 'zod';
 import { t } from './trpc';
-import { wordRouter } from './routers/wordRouter'
+import { ttsRouter } from './routers/ttsRouter'
 
 export const appRouter = t.router({
-    words: wordRouter,
+    tts: ttsRouter,
     getUser: t.procedure.input(z.string()).query((opts) => {
         opts.input; // string
         return { id: opts.input, name: 'Bilbo' };
