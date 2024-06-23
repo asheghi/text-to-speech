@@ -3,6 +3,7 @@ import { FormEvent, FormEventHandler, useCallback, useEffect, useMemo, useState 
 import { trpc } from "../../../api"
 import { languageList } from "./consts/languageList";
 import Dropdown from "./Dropdown";
+import { Link } from "react-router-dom";
 
 interface IFormProps {
     onSubmit: (params: { model: string, text: string }) => void;
@@ -134,6 +135,11 @@ export const Form = (props: IFormProps): JSX.Element => {
             />
         </div>
         <div className="flex">
+            <Link
+                type="submit"
+                className="bg-blue-500 text-white px-4 py-2 rounded-md ml-[128px] text-xl font-semibold"
+                to={"/reading"}
+            >Read ️📖</Link>
             <button
                 disabled={props.isPending}
                 type="submit"

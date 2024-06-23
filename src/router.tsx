@@ -4,8 +4,8 @@ import { RootLayout } from './pages/index/RootLayout';
 import { PageNotFound } from './pages/not-found/PageNotFound';
 import { ErrorPage } from './pages/error/ErrorPage';
 import { IndexPage } from './pages/index/IndexPage';
-import { WordDetailsPage } from './pages/word-details/WordDetailsPage';
 import { FlashCardsPage } from './pages/flash-cards/FlashCardsPage';
+import ReaderPage from './pages/reader/ReaderPage';
 
 export const router = createBrowserRouter([
   {
@@ -18,10 +18,9 @@ export const router = createBrowserRouter([
         element: <IndexPage />,
       },
       {
-        path: '/word/:word',
-        element: <WordDetailsPage />,
+        path: 'reader',
+        element: <ReaderPage />,
       },
-
     ]
   },
   {

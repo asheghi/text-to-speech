@@ -13,7 +13,7 @@ console.log("Starting server ...");
 
 const app = express();
 
-app.use(cors())
+// app.use('/api/trpc', cors())
 
 app.use(
     '/api/trpc',
@@ -23,8 +23,11 @@ app.use(
     })
 );
 
-app.get('/api/tts', async (req, res) => {
+app.all('/api/tts', async (req, res) => {
     const { text, model, } = req.query;
+    // log request
+     console.log(`Received request for TTS with model ${model} and text "${text}"`);
+
     // validate inputs
     if (!text || !model) {
         res.status(400).send('Missing required parameters.');
@@ -41,10 +44,12 @@ app.get('/api/tts', async (req, res) => {
         filePath = await generateSentence(model as string, text as string)
     } catch (error) {
         console.error(error)
+        console.error("failed to generate file")
         return res.status(500).send("failed to generate audio");
     }
 
     if (!fs.existsSync(filePath)) {
+        console.error("generated file doesn't exists!")
         return res.status(500).send('failed to get generated audio.');
     }
 
@@ -60,7 +65,8 @@ app.get('/api/tts', async (req, res) => {
     readStream.pipe(res);
 
     readStream.on('error', (error) => {
-        console.error('Error streaming the file:', error);
+        console.error('Error streaming the file:');
+        console.log(error);
         res.status(500).send('Error streaming the file');
     });
 
