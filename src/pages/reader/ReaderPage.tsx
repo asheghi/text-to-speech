@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Display } from "./components/Display";
 import { Player } from "./components/Player";
 import { SentenceType } from "./types/SentenceType";
-import { AudioControls, createAudioPlayer } from "./utils/AudioPlayer";
 import { getTtsLink } from "./utils/getTtsLink";
 import { fetchUntilFirstByte } from "../../utils/fetchUntilFirstByte";
+import useAudioPlayer from "./hooks/useAudioPlayer";
 
 // create a function to create random string
 export function createRandomString(length: number): string {
@@ -35,68 +36,104 @@ const model = JSON.parse(modelJSON).value;
 
 const sentences = splitToSentences(text);
 
+
+async function loadSentences(urls: string[]): Promise<void> {
+    for await (const url of urls) {
+        await fetchUntilFirstByte(url);
+    }
+}
+
 const ReaderPage = (): JSX.Element => {
-    const audioPlayer = useRef<AudioControls>(createAudioPlayer());
-    const [currentIndex, setCurrentIndex] = useState(0);
-    const currentSentence = useMemo(() => {
-        return sentences.find(it => it.id === currentIndex)
-    }, [currentIndex]);
+    const [autoPlay, setAutoPlay] = useState(() => {
+        return !!localStorage.getItem('autoPlay') ?? false;
+    });
 
-    const [isPlaying, setIsPlaying] = useState(false);
+    const {
+        isPlaying,
+        duration,
+        isPending,
+        finished,
+        currentTime,
+        currentTrackIndex,
+        setPlaylist,
+        play,
+        pause,
+        stop,
+        seek,
+        playNext,
+        playPrevious,
+        addEventListener,
+        removeEventListener,
+        setCurrentTrackIndex,
+    } = useAudioPlayer({ autoPlay });
 
-    const handleTogglePlay = function (): void {
-        audioPlayer.current.play();
-    };
 
-    const handleNext = function (): void {
-    };
+    console.log(`check::`, { isPlaying, isPending, finished, currentTrackIndex, duration, currentTime, length: sentences.length });
 
-    function handlePrevious(): void {
-    }
 
-    const playNextSentence = async () => {
-        if (!currentSentence) return;
-        const url = getTtsLink(currentSentence.text, model);
-        const onAudioEnd = () => {
-            setCurrentIndex(prev => {
-                if (prev === sentences.length - 1) {
-                    return 0;
-                }
-                return prev + 1;
-            });
-        };
-        fetchUntilFirstByte(url).then(async () => {
-            await  new Promise((resolve) => setTimeout(resolve, 3000));
-            audioPlayer.current.setUrl(url, onAudioEnd);
-            audioPlayer.current.play();
+
+    useEffect(() => {
+        const links = sentences.map(it => {
+            const url = getTtsLink(it.text, model);
+            return url;
         });
-    }
 
-    useEffect(() => {
-        playNextSentence()
-    }, [currentSentence]);
+        // trigger loading audio files one by one
+        loadSentences(links);
 
+        setPlaylist(links);
+
+        const handleFinish = () => console.log('Audio finished playing');
+        addEventListener('finish', handleFinish);
+
+        return () => {
+            removeEventListener('finish', handleFinish);
+        };
+    }, []);
+
+    // preload next sentences
     useEffect(() => {
-        const nextSenetences = sentences.slice(currentIndex + 1, Math.min(currentIndex + 2, sentences.length - 1))
+        const nextSenetences = sentences.slice(currentTrackIndex + 1, Math.min(currentTrackIndex + 2, sentences.length - 1))
         nextSenetences.forEach(it => {
             const url = getTtsLink(it.text, model);
             fetchUntilFirstByte(url)
         });
-    }, [currentIndex]);
+    }, [currentTrackIndex]);
 
 
-    function handleSelect(id: string | number): void {
-        setCurrentIndex(id as number);
+    function handleSelect(id: number): void {
+        setCurrentTrackIndex(id)
+    }
+
+    function handleActiveIndexChange(index: number): void {
+        setCurrentTrackIndex(index)
+    }
+
+
+    const handleAutoPlayChange = (value: boolean) => {
+        setAutoPlay(value);
+        value ? localStorage.setItem('autoPlay', 'true') : localStorage.removeItem('autoPlay');
     }
 
     return (
         <main className="container mx-auto">
-            <Display onSelect={handleSelect} sentences={sentences} activeSentenceId={currentIndex} />
+            <Display
+                onSelect={handleSelect}
+                sentences={sentences}
+                activeSentenceId={currentTrackIndex}
+            />
             <Player
-                onTogglePlay={handleTogglePlay}
-                onNext={handleNext}
-                onPrev={handlePrevious}
-                isPlaying={false} />
+                onTogglePlay={isPlaying ? pause : play}
+                onNext={playNext}
+                onPrev={playPrevious}
+                isPlaying={isPlaying}
+                currentIndex={currentTrackIndex}
+                length={sentences.length}
+                onActiveIndexChange={handleActiveIndexChange}
+                autoPlay={autoPlay}
+                onAutoPlayChange={handleAutoPlayChange}
+
+            />
         </main>
     )
 }

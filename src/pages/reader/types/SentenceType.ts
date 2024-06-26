@@ -1,4 +1,4 @@
 export type SentenceType = {
-    id: string | number;
+    id: number;
     text: string;
 }

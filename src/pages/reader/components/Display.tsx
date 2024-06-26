@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { SentenceType } from "../types/SentenceType"
 
-export const Display = (props: { onSelect: (id: string | number) => void; sentences: SentenceType[], activeSentenceId: string | number }) => {
+export const Display = (props: { onSelect: (id: number) => void; sentences: SentenceType[], activeSentenceId: string | number }) => {
     const scrollContainer = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -13,7 +13,7 @@ export const Display = (props: { onSelect: (id: string | number) => void; senten
     }, [props.activeSentenceId])
 
     return <div className="border rounded-xl shadow-xl border-gray-300 overflow-hidden px-2">
-        <div ref={scrollContainer} className="flex flex-col gap-1 max-h-[80vh] overflow-x-auto my-4">
+        <div ref={scrollContainer} className="flex flex-col gap-1 max-h-[80vh] overflow-x-auto scroll-smooth my-4">
             {props.sentences.map(it => {
                 const isActive = it.id === props.activeSentenceId;
                 return <span

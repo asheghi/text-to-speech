@@ -138,7 +138,7 @@ export const Form = (props: IFormProps): JSX.Element => {
             <Link
                 type="submit"
                 className="bg-blue-500 text-white px-4 py-2 rounded-md ml-[128px] text-xl font-semibold"
-                to={"/reading"}
+                to={"/reader"}
             >Read ️📖</Link>
             <button
                 disabled={props.isPending}
