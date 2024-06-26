@@ -48,6 +48,16 @@ const ReaderPage = (): JSX.Element => {
         return !!localStorage.getItem('autoPlay') ?? false;
     });
 
+    const [delay, setDelay] = useState(() => {
+        const d = localStorage.getItem('delay');
+        try {
+            return JSON.parse(d);
+            // eslint-disable-next-line no-empty
+        } catch (error) {
+        }
+        return 0;
+    });
+
     const {
         isPlaying,
         duration,
@@ -65,7 +75,7 @@ const ReaderPage = (): JSX.Element => {
         addEventListener,
         removeEventListener,
         setCurrentTrackIndex,
-    } = useAudioPlayer({ autoPlay });
+    } = useAudioPlayer({ autoPlay,delay });
 
 
     console.log(`check::`, { isPlaying, isPending, finished, currentTrackIndex, duration, currentTime, length: sentences.length });
@@ -115,12 +125,18 @@ const ReaderPage = (): JSX.Element => {
         value ? localStorage.setItem('autoPlay', 'true') : localStorage.removeItem('autoPlay');
     }
 
+    const handleDelayChange = (newDelay : number) => {
+        setDelay(newDelay)
+        localStorage.setItem('delay',JSON.stringify(newDelay));
+    }
+
     return (
         <main className="container mx-auto">
             <Display
                 onSelect={handleSelect}
                 sentences={sentences}
                 activeSentenceId={currentTrackIndex}
+                isPending={isPending}
             />
             <Player
                 onTogglePlay={isPlaying ? pause : play}
@@ -132,7 +148,8 @@ const ReaderPage = (): JSX.Element => {
                 onActiveIndexChange={handleActiveIndexChange}
                 autoPlay={autoPlay}
                 onAutoPlayChange={handleAutoPlayChange}
-
+                delay={delay}
+                onDelayChange={handleDelayChange}
             />
         </main>
     )

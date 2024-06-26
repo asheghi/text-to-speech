@@ -19,7 +19,7 @@ interface AudioPlayerHook {
   removeEventListener: (event: string, callback: () => void) => void;
 }
 
-const useAudioPlayer = (args: { autoPlay: boolean }): AudioPlayerHook => {
+const useAudioPlayer = (args: { autoPlay: boolean, delay: number }): AudioPlayerHook => {
   console.log({ args });
 
   const [playlist, setPlaylistState] = useState<string[]>([]);
@@ -48,6 +48,8 @@ const useAudioPlayer = (args: { autoPlay: boolean }): AudioPlayerHook => {
       setCurrentTime(0);
       if (audioRef.current) {
         audioRef.current.src = playlistRef.current[index];
+      }
+      if (args.autoPlay) {
         play();
       }
     }
@@ -60,7 +62,7 @@ const useAudioPlayer = (args: { autoPlay: boolean }): AudioPlayerHook => {
 
     const handleLoadStart = () => setIsPending(true);
     const handleCanPlay = () => setIsPending(false);
-    
+
     audio.addEventListener('loadstart', handleLoadStart);
     audio.addEventListener('canplay', handleCanPlay);
     audio.addEventListener('ended', handleEnded);
@@ -91,13 +93,16 @@ const useAudioPlayer = (args: { autoPlay: boolean }): AudioPlayerHook => {
     }
   }, [playlist, isPlaying]);
 
-  const handleEnded = useCallback(() => {
+  const handleEnded = useCallback(async () => {
+    if (args.delay) {
+      await new Promise(r => setTimeout(r, args.delay * 1000))
+    }
+
     setIsPlaying(false);
     setFinished(true);
     triggerEvent('finish');
-    if (args.autoPlay) {
-      playNext();
-    }
+    
+    playNext();
   }, []);
 
   const handleTimeUpdate = () => {

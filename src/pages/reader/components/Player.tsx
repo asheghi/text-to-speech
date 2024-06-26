@@ -16,6 +16,8 @@ interface IPlayerProps {
     onActiveIndexChange: (index: number) => void;
     autoPlay: boolean;
     onAutoPlayChange: (value: boolean) => void;
+    delay: number;
+    onDelayChange : (delay : number) => void;
 }
 
 export const Player = (props: IPlayerProps) => {
@@ -25,6 +27,10 @@ export const Player = (props: IPlayerProps) => {
 
     function handleAutoPlayChange(event: ChangeEvent<HTMLInputElement>): void {
         props.onAutoPlayChange(event.target.checked)
+    }
+
+    function handleDelayChange(event: ChangeEvent<HTMLSelectElement>): void {
+        props.onDelayChange(parseInt(event.target.value))
     }
 
     return <div>
@@ -46,8 +52,14 @@ export const Player = (props: IPlayerProps) => {
                     <NextIcon />
                 </button>
             </div>
-            <div className='flex-1'>
-
+            <div className='flex-1 flex justify-end'>
+                <select onChange={handleDelayChange} value={props.delay}>
+                    <option value={0}>No Delay &nbsp;</option>
+                    <option value={1}>Delay 1</option>
+                    <option value={2}>Delay 2</option>
+                    <option value={3}>Delay 3</option>
+                    <option value={4}>Delay 4</option>
+                </select>
             </div>
         </div>
     </div>

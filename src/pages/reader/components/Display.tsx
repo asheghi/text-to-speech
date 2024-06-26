@@ -1,7 +1,12 @@
 import { useEffect, useRef } from "react";
 import { SentenceType } from "../types/SentenceType"
 
-export const Display = (props: { onSelect: (id: number) => void; sentences: SentenceType[], activeSentenceId: string | number }) => {
+export const Display = (props: {
+    isPending: boolean;
+    onSelect: (id: number) => void;
+    sentences: SentenceType[];
+    activeSentenceId: string | number;
+}) => {
     const scrollContainer = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -21,7 +26,7 @@ export const Display = (props: { onSelect: (id: number) => void; sentences: Sent
                         props.onSelect(it.id)
                     }}
                     id={'sentence-' + it.id}
-                    key={it.id} className={`rounded-md px-2 py-1 text-2xl self-start transition ` + (isActive ? " bg-yellow-500" : " cursor-pointer hover:bg-gray-400")}>
+                    key={it.id} className={`rounded-md px-2 py-1 text-2xl self-start transition-all ` + (props.isPending && isActive ? "bg-gray-300" : isActive ? " bg-sky-700 text-white" : " cursor-pointer hover:bg-gray-300")}>
                     {it.text}
                 </span>
             })}
