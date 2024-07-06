@@ -1,9 +1,16 @@
 const cache = new Map<string, boolean>();
+let count = 0;
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export async function fetchUntilFirstByte(url: string, retryCount = 0) {
     if (cache.get(url)) return;
 
+    while (count > 8) {
+        await new Promise(r => setTimeout(r, 500))
+    }
+
     try {
+        count++;
         const response = await fetch(url, { method: 'GET' });
         if (response.ok) {
             console.log(`[fetchUntilFirstByte] URL is reachable. Status: ${response.status}`);
@@ -21,5 +28,7 @@ export async function fetchUntilFirstByte(url: string, retryCount = 0) {
         }
         cache.set(url, false);
         throw error;
+    }finally{
+        count--;
     }
 }

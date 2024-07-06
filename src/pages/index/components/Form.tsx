@@ -4,45 +4,32 @@ import { trpc } from "../../../api"
 import { languageList } from "./consts/languageList";
 import Dropdown from "./Dropdown";
 import { Link } from "react-router-dom";
+import qs from 'qs'
 
 interface IFormProps {
     onSubmit: (params: { model: string, text: string }) => void;
     isPending: boolean;
 }
 
+const getLocalStorageItem = (key: string) => () => {
+    try {
+        const json = localStorage.getItem(key);
+        if (!json) return undefined;
+        return JSON.parse(json);
+    } catch (error) {
+        console.error(error);
+        return undefined;
+    }
+};
+
+
 export const Form = (props: IFormProps): JSX.Element => {
     const modelsQuery = trpc.tts.getModelsList.useQuery();
-    const [selectedLanguage, setSelectedLanguage] = useState<{ value: string | undefined | null, lable: string }>(() => {
-        try {
-            const json = localStorage.getItem("language");
-            if (!json) return undefined;
-            return JSON.parse(json);
-        } catch (error) {
-            console.error(error);
-            return undefined;
-        }
-    });
-    const [selectedModel, setSelectedModel] = useState<{ value: string | undefined | null, lable: string }>(() => {
-        try {
-            const json = localStorage.getItem("model");
-            if (!json) return undefined;
-            return JSON.parse(json);
-        } catch (error) {
-            console.error(error);
-            return undefined;
-        }
-    });
 
-    const [text, setText] = useState<string>(() => {
-        try {
-            const json = localStorage.getItem("text");
-            if (!json) return undefined;
-            return JSON.parse(json);
-        } catch (error) {
-            console.error(error);
-            return undefined;
-        }
-    });
+    const [selectedLanguage, setSelectedLanguage] = useState<{ value: string | undefined | null, lable: string }>(getLocalStorageItem('language'));
+    const [selectedModel, setSelectedModel] = useState<{ value: string | undefined | null, lable: string }>(getLocalStorageItem('model'));
+    const [text, setText] = useState<string>(getLocalStorageItem('text'));
+
     const getModelsForLanguage = useCallback((lanaugeCode: string | undefined | null) => (modelsQuery.data ?? []).filter(model => {
         return model.modelName.toLowerCase().includes(`-${lanaugeCode}-`) || model.modelName.toLowerCase().includes(`-${lanaugeCode}_`);
     }), [modelsQuery.data]);
@@ -102,6 +89,8 @@ export const Form = (props: IFormProps): JSX.Element => {
         setText(event.target.value);
     }
 
+    const readerLink = '/reader?' + qs.stringify({ language: selectedLanguage.value, model: selectedModel.value, text })
+
     return <form onSubmit={handleFormSubmit} className="container mx-auto">
         <div className="flex py-2 gap-2 items-center">
             <label className="font-bold min-w-[120px]">Language</label>
@@ -138,12 +127,13 @@ export const Form = (props: IFormProps): JSX.Element => {
             <Link
                 type="submit"
                 className="bg-blue-500 text-white px-4 py-2 rounded-md ml-[128px] text-xl font-semibold"
-                to={"/reader"}
+                to={readerLink}
             >Read ️📖</Link>
             <button
                 disabled={props.isPending}
                 type="submit"
                 className="bg-blue-500 text-white px-4 py-2 rounded-md ml-[128px] text-xl font-semibold">Synthesize ▶️</button>
+
         </div>
     </form>
 }

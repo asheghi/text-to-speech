@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Display } from "./components/Display";
 import { Player } from "./components/Player";
 import { SentenceType } from "./types/SentenceType";
 import { getTtsLink } from "./utils/getTtsLink";
 import { fetchUntilFirstByte } from "../../utils/fetchUntilFirstByte";
 import useAudioPlayer from "./hooks/useAudioPlayer";
+import qs from 'qs'
 
 // create a function to create random string
 export function createRandomString(length: number): string {
@@ -19,22 +20,18 @@ export function createRandomString(length: number): string {
 
 function splitToSentences(text: string): SentenceType[] {
     text = text.replaceAll("\\n", "").replaceAll('-', '').replaceAll("\\\"", "").replaceAll("\"", "")
-    const sentences = text.replaceAll(/\n/g, '').split(/[.!?]+/).map((sentence) => sentence.trim().toLowerCase());
-    return sentences.map(it => it.trim()).filter(it => it && it.length).map((it, index) => {
-        return {
-            text: it,
-            id: index,
-        }
-    });
+    return text.split(/(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?|!)\s/)
+        .map((sentence) => sentence.trim().toLowerCase())
+        .map(it => it.trim()).filter(it => it && it.length)
+        .map((it, index) => {
+            return {
+                text: it,
+                id: index,
+            }
+        });
 }
 
-const text = localStorage.getItem('text') ?? "";
-const modelJSON = localStorage.getItem('model') ?? "";
-const languageJSON = localStorage.getItem('language') ?? "";
-const language = JSON.parse(languageJSON).value;
-const model = JSON.parse(modelJSON).value;
 
-const sentences = splitToSentences(text);
 
 
 async function loadSentences(urls: string[]): Promise<void> {
@@ -44,6 +41,11 @@ async function loadSentences(urls: string[]): Promise<void> {
 }
 
 const ReaderPage = (): JSX.Element => {
+    const params = qs.parse(window.location.search, { ignoreQueryPrefix: true }) as { text: string | undefined, model: string | undefined }
+    const text = params?.text ?? '';
+    const model = params?.model ?? '';
+    const sentences = splitToSentences(text);
+
     const [autoPlay, setAutoPlay] = useState(() => {
         return !!localStorage.getItem('autoPlay') ?? false;
     });
@@ -75,12 +77,7 @@ const ReaderPage = (): JSX.Element => {
         addEventListener,
         removeEventListener,
         setCurrentTrackIndex,
-    } = useAudioPlayer({ autoPlay,delay });
-
-
-    console.log(`check::`, { isPlaying, isPending, finished, currentTrackIndex, duration, currentTime, length: sentences.length });
-
-
+    } = useAudioPlayer({ autoPlay, delay });
 
     useEffect(() => {
         const links = sentences.map(it => {
@@ -103,12 +100,11 @@ const ReaderPage = (): JSX.Element => {
 
     // preload next sentences
     useEffect(() => {
-        const nextSenetences = sentences.slice(currentTrackIndex + 1, Math.min(currentTrackIndex + 2, sentences.length - 1))
-        nextSenetences.forEach(it => {
+        sentences.forEach(it => {
             const url = getTtsLink(it.text, model);
             fetchUntilFirstByte(url)
         });
-    }, [currentTrackIndex]);
+    }, []);
 
 
     function handleSelect(id: number): void {
@@ -125,9 +121,9 @@ const ReaderPage = (): JSX.Element => {
         value ? localStorage.setItem('autoPlay', 'true') : localStorage.removeItem('autoPlay');
     }
 
-    const handleDelayChange = (newDelay : number) => {
+    const handleDelayChange = (newDelay: number) => {
         setDelay(newDelay)
-        localStorage.setItem('delay',JSON.stringify(newDelay));
+        localStorage.setItem('delay', JSON.stringify(newDelay));
     }
 
     return (
@@ -139,6 +135,7 @@ const ReaderPage = (): JSX.Element => {
                 isPending={isPending}
             />
             <Player
+                isPending={isPending}
                 onTogglePlay={isPlaying ? pause : play}
                 onNext={playNext}
                 onPrev={playPrevious}

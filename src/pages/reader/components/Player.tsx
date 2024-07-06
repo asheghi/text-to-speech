@@ -4,6 +4,7 @@ import PlayIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import NextIcon from '@mui/icons-material/KeyboardDoubleArrowRight'
 import PrevIcon from '@mui/icons-material/KeyboardDoubleArrowLeft'
+import PendingIcon from '@mui/icons-material/Pending'
 
 
 interface IPlayerProps {
@@ -17,6 +18,7 @@ interface IPlayerProps {
     autoPlay: boolean;
     onAutoPlayChange: (value: boolean) => void;
     delay: number;
+    isPending: boolean;
     onDelayChange : (delay : number) => void;
 }
 
@@ -47,7 +49,7 @@ export const Player = (props: IPlayerProps) => {
                 <button onClick={props.onPrev}>
                     <PrevIcon />
                 </button>
-                <button onClick={props.onTogglePlay}>{props.isPlaying ? <PauseIcon /> : <PlayIcon />}</button>
+                <button onClick={props.onTogglePlay}>{props.isPending ? <PendingIcon /> : props.isPlaying ? <PauseIcon /> : <PlayIcon />}</button>
                 <button onClick={props.onNext}>
                     <NextIcon />
                 </button>
