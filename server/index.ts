@@ -59,6 +59,7 @@ app.all('/api/tts', async (req, res) => {
     res.setHeader('Content-Length', fileSize);
     res.setHeader('Content-Type', 'audio/wav');
     res.setHeader('Content-Disposition', 'inline; filename="speech.wav"');
+    res.set('Cache-Control', 'public, max-age=604800');
 
     const readStream = fs.createReadStream(filePath);
 

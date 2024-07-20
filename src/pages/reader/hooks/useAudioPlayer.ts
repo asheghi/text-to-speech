@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { SentenceType } from '../types/SentenceType';
 
 interface AudioPlayerHook {
   isPlaying: boolean;
@@ -19,7 +20,7 @@ interface AudioPlayerHook {
   removeEventListener: (event: string, callback: () => void) => void;
 }
 
-const useAudioPlayer = (args: { autoPlay: boolean, delay: number }): AudioPlayerHook => {
+const useAudioPlayer = (args: { autoPlay: boolean, delay: number | string, sentences?: SentenceType[] }): AudioPlayerHook => {
   console.log({ args });
 
   const [playlist, setPlaylistState] = useState<string[]>([]);
@@ -91,17 +92,24 @@ const useAudioPlayer = (args: { autoPlay: boolean, delay: number }): AudioPlayer
         play();
       }
     }
-  }, [playlist, isPlaying]);
+  }, [playlist]);
 
   const handleEnded = useCallback(async () => {
     if (args.delay) {
-      await new Promise(r => setTimeout(r, args.delay * 1000))
+      let delaySeconds = 0;
+      if (args.delay === 'auto') {
+        const wordCount = (args?.sentences?.[currentTrackIndexRef.current]?.text ?? "").split(' ').length;
+        delaySeconds = wordCount * .5 * 1000;
+      } else if(typeof args.delay === 'number') {
+        delaySeconds = args.delay * 1000;
+      }
+      await new Promise(r => setTimeout(r, delaySeconds))
     }
 
     setIsPlaying(false);
     setFinished(true);
     triggerEvent('finish');
-    
+
     playNext();
   }, []);
 

@@ -20,7 +20,7 @@ export function createRandomString(length: number): string {
 
 function splitToSentences(text: string): SentenceType[] {
     text = text.replaceAll("\\n", "").replaceAll('-', '').replaceAll("\\\"", "").replaceAll("\"", "")
-    return text.split(/(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?|!)\s/)
+    return text.split(/(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?|!|:)\s/)
         .map((sentence) => sentence.trim().toLowerCase())
         .map(it => it.trim()).filter(it => it && it.length)
         .map((it, index) => {
@@ -51,7 +51,7 @@ const ReaderPage = (): JSX.Element => {
     });
 
     const [delay, setDelay] = useState(() => {
-        const d = localStorage.getItem('delay');
+        const d = localStorage.getItem('delay') ?? "";
         try {
             return JSON.parse(d);
             // eslint-disable-next-line no-empty
@@ -77,7 +77,7 @@ const ReaderPage = (): JSX.Element => {
         addEventListener,
         removeEventListener,
         setCurrentTrackIndex,
-    } = useAudioPlayer({ autoPlay, delay });
+    } = useAudioPlayer({ autoPlay, delay, sentences });
 
     useEffect(() => {
         const links = sentences.map(it => {
@@ -121,7 +121,7 @@ const ReaderPage = (): JSX.Element => {
         value ? localStorage.setItem('autoPlay', 'true') : localStorage.removeItem('autoPlay');
     }
 
-    const handleDelayChange = (newDelay: number) => {
+    const handleDelayChange = (newDelay: number | string) => {
         setDelay(newDelay)
         localStorage.setItem('delay', JSON.stringify(newDelay));
     }

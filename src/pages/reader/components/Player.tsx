@@ -19,7 +19,7 @@ interface IPlayerProps {
     onAutoPlayChange: (value: boolean) => void;
     delay: number;
     isPending: boolean;
-    onDelayChange : (delay : number) => void;
+    onDelayChange : (delay : number | string) => void;
 }
 
 export const Player = (props: IPlayerProps) => {
@@ -32,7 +32,9 @@ export const Player = (props: IPlayerProps) => {
     }
 
     function handleDelayChange(event: ChangeEvent<HTMLSelectElement>): void {
-        props.onDelayChange(parseInt(event.target.value))
+        const value = event.target.value;
+        if(value === 'auto') return props.onDelayChange(value);
+        props.onDelayChange(parseInt(value))
     }
 
     return <div>
@@ -61,6 +63,7 @@ export const Player = (props: IPlayerProps) => {
                     <option value={2}>Delay 2</option>
                     <option value={3}>Delay 3</option>
                     <option value={4}>Delay 4</option>
+                    <option value={"auto"}>Auto</option>
                 </select>
             </div>
         </div>
