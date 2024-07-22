@@ -16,4 +16,10 @@
     button {
         @apply transition-all hover:bg-gray-400 rounded p-1 border bg-gray-200;
     }
+
+
+}
+
+.select {
+    @apply border bg-gray-200 p-1 border-gray-300 min-w-[90px] max-w-[100px] rounded;
 }

@@ -1,10 +1,8 @@
-import React from 'react';
 import { createBrowserRouter } from "react-router-dom";
-import { RootLayout } from './pages/index/RootLayout';
+import { RootLayout } from './components/RootLayout';
 import { PageNotFound } from './pages/not-found/PageNotFound';
 import { ErrorPage } from './pages/error/ErrorPage';
 import { IndexPage } from './pages/index/IndexPage';
-import { FlashCardsPage } from './pages/flash-cards/FlashCardsPage';
 import ReaderPage from './pages/reader/ReaderPage';
 
 export const router = createBrowserRouter([
@@ -22,10 +20,6 @@ export const router = createBrowserRouter([
         element: <ReaderPage />,
       },
     ]
-  },
-  {
-    path: '/flash-cards',
-    element: <FlashCardsPage />,
   },
   {
     path: "*",

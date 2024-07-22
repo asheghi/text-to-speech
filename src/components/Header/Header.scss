@@ -1,0 +1,30 @@
+.header-placeholder {
+    @apply  h-[50px];
+}
+
+.header {
+    /* Layout */
+    @apply fixed top-0 inset-x-0 z-50 px-4 py-2 h-[50px] flex items-center;
+
+    /* Style */
+    @apply bg-blue-500 text-white;
+    @apply shadow-lg ;
+
+    .header-content {
+        @apply container mx-auto;
+        @apply flex gap-2 items-center;
+    }
+
+    h1 {
+        @apply text-2xl;
+        line-height: 24px;
+    }
+
+    .back-link {
+        @apply flex items-center justify-center hover:bg-blue-800 p-1 rounded transition-all;
+    }
+
+    .back-icon {
+        @apply rounded w-[24px] h-[24px] opacity-75;
+    }
+}

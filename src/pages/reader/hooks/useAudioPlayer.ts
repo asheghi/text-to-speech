@@ -29,7 +29,8 @@ const useAudioPlayer = (args: { autoPlay: boolean, delay: number | string, sente
   const [finished, setFinished] = useState(false);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
-  const [renderIndex, setRenderIndex] = useState(0);
+  const [,setRenderIndex] = useState(0);
+  const delayTimeout = useRef<Timer>();
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const eventListeners = useRef<{ [key: string]: (() => void)[] }>({});
@@ -55,6 +56,9 @@ const useAudioPlayer = (args: { autoPlay: boolean, delay: number | string, sente
       }
     }
     setRenderIndex(r => r + 1);
+    if (delayTimeout.current) {
+      clearTimeout(delayTimeout.current)
+    }
   }, [isPlaying]);
 
   useEffect(() => {
@@ -95,27 +99,31 @@ const useAudioPlayer = (args: { autoPlay: boolean, delay: number | string, sente
   }, [playlist]);
 
   const handleEnded = useCallback(async () => {
+    setIsPlaying(false);
+    setFinished(true);
+
     if (args.delay) {
       let delaySeconds = 0;
       if (args.delay === 'auto') {
         const wordCount = (args?.sentences?.[currentTrackIndexRef.current]?.text ?? "").split(' ').length;
-        delaySeconds = wordCount * .5 * 1000;
-      } else if(typeof args.delay === 'number') {
+        delaySeconds = wordCount * .6 * 1000;
+      } else if (typeof args.delay === 'number') {
         delaySeconds = args.delay * 1000;
       }
-      await new Promise(r => setTimeout(r, delaySeconds))
+      await new Promise(r => delayTimeout.current = setTimeout(r, delaySeconds))
     }
 
-    setIsPlaying(false);
-    setFinished(true);
     triggerEvent('finish');
 
-    playNext();
+    if (args.autoPlay) {
+      playNext();
+    }
   }, []);
 
   const handleTimeUpdate = () => {
     if (audioRef.current) {
       setCurrentTime(audioRef.current.currentTime);
+      setIsPlaying(!audioRef.current.paused)
     }
   };
 

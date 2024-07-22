@@ -17,7 +17,7 @@ export const Display = (props: {
         scrollContainer.current.scrollTop = activeElement.offsetTop - scrollContainer.current.clientHeight / 2 + activeElement.clientHeight / 2;
     }, [props.activeSentenceId])
 
-    return <div className="border rounded-xl shadow-xl border-gray-300 overflow-hidden px-2">
+    return <div className="border rounded-xl shadow-xl border-gray-300 overflow-hidden px-2 h-full flex-grow">
         <div ref={scrollContainer} className="flex flex-col gap-1 max-h-[80vh] overflow-x-auto scroll-smooth my-4">
             {props.sentences.map(it => {
                 const isActive = it.id === props.activeSentenceId;
@@ -26,7 +26,7 @@ export const Display = (props: {
                         props.onSelect(it.id)
                     }}
                     id={'sentence-' + it.id}
-                    key={it.id} className={`rounded-md px-2 py-1 text-2xl self-start transition-all ` + (props.isPending && isActive ? "bg-gray-300" : isActive ? " bg-sky-700 text-white" : " cursor-pointer hover:bg-gray-300")}>
+                    key={it.id} className={`rounded-md px-2 py-1 md:text-2xl text-lg self-start transition-all ` + (props.isPending && isActive ? "bg-gray-300" : isActive ? " bg-sky-200 " : " cursor-pointer hover:bg-gray-300")}>
                     {it.text}
                 </span>
             })}

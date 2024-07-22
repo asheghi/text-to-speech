@@ -3,12 +3,15 @@ import { FormEvent, FormEventHandler, useCallback, useEffect, useMemo, useState 
 import { trpc } from "../../../api"
 import { languageList } from "./consts/languageList";
 import Dropdown from "./Dropdown";
-import { Link } from "react-router-dom";
-import qs from 'qs'
+
+import "./Form.scss"
+import { FormType } from "../FormType";
 
 interface IFormProps {
-    onSubmit: (params: { model: string, text: string }) => void;
+    onFormChange: (params: FormType) => void;
     isPending: boolean;
+    onSubmit: () => void;
+    player: React.ReactNode;
 }
 
 const getLocalStorageItem = (key: string) => () => {
@@ -29,6 +32,14 @@ export const Form = (props: IFormProps): JSX.Element => {
     const [selectedLanguage, setSelectedLanguage] = useState<{ value: string | undefined | null, lable: string }>(getLocalStorageItem('language'));
     const [selectedModel, setSelectedModel] = useState<{ value: string | undefined | null, lable: string }>(getLocalStorageItem('model'));
     const [text, setText] = useState<string>(getLocalStorageItem('text'));
+
+    useEffect(() => {
+        props.onFormChange({
+            model: selectedModel?.value ?? "",
+            text: text?.trim(),
+            language: selectedLanguage?.value ?? "",
+        });
+    }, [props, selectedLanguage?.value, selectedModel?.value, text])
 
     const getModelsForLanguage = useCallback((lanaugeCode: string | undefined | null) => (modelsQuery.data ?? []).filter(model => {
         return model.modelName.toLowerCase().includes(`-${lanaugeCode}-`) || model.modelName.toLowerCase().includes(`-${lanaugeCode}_`);
@@ -79,21 +90,19 @@ export const Form = (props: IFormProps): JSX.Element => {
 
         if (props.isPending) return;
 
-        props.onSubmit({
-            model: selectedModel.value,
-            text: text.trim(),
-        })
+        props.onSubmit()
     }
 
     function handleTextChange(event: { target: { value: string } }): void {
         setText(event.target.value);
     }
 
-    const readerLink = '/reader?' + qs.stringify({ language: selectedLanguage.value, model: selectedModel.value, text })
 
-    return <form onSubmit={handleFormSubmit} className="container mx-auto">
-        <div className="flex py-2 gap-2 items-center">
-            <label className="font-bold min-w-[120px]">Language</label>
+
+
+    return <form onSubmit={handleFormSubmit} className="form">
+        <div className="form-group">
+            <label className="">Language:</label>
             <Dropdown
                 isDisabled={props.isPending}
                 options={filteredLanguages.map(it => ({ value: it.code, lable: `${it.name} (${it.nativeName})` }))}
@@ -102,8 +111,8 @@ export const Form = (props: IFormProps): JSX.Element => {
                 placeholder="Select a language"
             />
         </div>
-        <div className="flex gap-2 items-center py-2">
-            <label className="font-bold min-w-[120px]">Model</label>
+        <div className="form-group">
+            <label >Model:</label>
             <Dropdown
                 isDisabled={props.isPending}
                 options={filteredModels.map(it => ({ value: it.modelName, lable: it.modelName }))}
@@ -113,8 +122,8 @@ export const Form = (props: IFormProps): JSX.Element => {
                     setSelectedModel(newValue)
                 }} />
         </div>
-        <div className="flex gap-2 item-center py-2">
-            <label className="font-bold min-w-[120px]">Text</label>
+        <div className="form-group">
+            <label >Text:</label>
             <textarea
                 disabled={props.isPending}
                 value={text}
@@ -123,17 +132,13 @@ export const Form = (props: IFormProps): JSX.Element => {
                 className="w-full h-32 p-2 border rounded-md border-gray-300 min-h-[240px] outline-blue-500"
             />
         </div>
-        <div className="flex">
-            <Link
-                type="submit"
-                className="bg-blue-500 text-white px-4 py-2 rounded-md ml-[128px] text-xl font-semibold"
-                to={readerLink}
-            >Read ️📖</Link>
-            <button
-                disabled={props.isPending}
-                type="submit"
-                className="bg-blue-500 text-white px-4 py-2 rounded-md ml-[128px] text-xl font-semibold">Synthesize ▶️</button>
+        {props.player}
+        <button
+            disabled={props.isPending}
+            type="submit"
+            className="self-end bg-blue-500 text-white px-4 rounded-md py-2 text-xl font-semibold">
+            Synthesize ▶️
+        </button>
 
-        </div>
     </form>
 }

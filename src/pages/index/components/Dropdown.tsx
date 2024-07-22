@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React from 'react';
 import Select from 'react-select';
 import { OptionsOrGroups, GroupBase, ActionMeta } from 'react-select';
 

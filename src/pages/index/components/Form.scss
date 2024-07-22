@@ -1,0 +1,11 @@
+.form{
+    @apply flex flex-col gap-4;
+
+    .form-group {
+        @apply flex-col items-start sm:flex-row flex gap-2;
+
+        label {
+            @apply capitalize font-bold opacity-75 min-w-[80px] sm:text-right pt-1;
+        }
+    }
+}

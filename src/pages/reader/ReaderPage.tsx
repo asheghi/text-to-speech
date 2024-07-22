@@ -7,6 +7,7 @@ import { getTtsLink } from "./utils/getTtsLink";
 import { fetchUntilFirstByte } from "../../utils/fetchUntilFirstByte";
 import useAudioPlayer from "./hooks/useAudioPlayer";
 import qs from 'qs'
+import { Page } from "@/components/Page";
 
 // create a function to create random string
 export function createRandomString(length: number): string {
@@ -19,7 +20,7 @@ export function createRandomString(length: number): string {
 }
 
 function splitToSentences(text: string): SentenceType[] {
-    text = text.replaceAll("\\n", "").replaceAll('-', '').replaceAll("\\\"", "").replaceAll("\"", "")
+    text = text.replaceAll("\\n", "").replaceAll('-', '').replaceAll("\\\"", "").replaceAll("\"", "").replaceAll("#", "")
     return text.split(/(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?|!|:)\s/)
         .map((sentence) => sentence.trim().toLowerCase())
         .map(it => it.trim()).filter(it => it && it.length)
@@ -62,16 +63,11 @@ const ReaderPage = (): JSX.Element => {
 
     const {
         isPlaying,
-        duration,
         isPending,
-        finished,
-        currentTime,
         currentTrackIndex,
         setPlaylist,
         play,
         pause,
-        stop,
-        seek,
         playNext,
         playPrevious,
         addEventListener,
@@ -127,28 +123,30 @@ const ReaderPage = (): JSX.Element => {
     }
 
     return (
-        <main className="container mx-auto">
-            <Display
-                onSelect={handleSelect}
-                sentences={sentences}
-                activeSentenceId={currentTrackIndex}
-                isPending={isPending}
-            />
-            <Player
-                isPending={isPending}
-                onTogglePlay={isPlaying ? pause : play}
-                onNext={playNext}
-                onPrev={playPrevious}
-                isPlaying={isPlaying}
-                currentIndex={currentTrackIndex}
-                length={sentences.length}
-                onActiveIndexChange={handleActiveIndexChange}
-                autoPlay={autoPlay}
-                onAutoPlayChange={handleAutoPlayChange}
-                delay={delay}
-                onDelayChange={handleDelayChange}
-            />
-        </main>
+        <Page headerTitle="Reader" backLink="/" >
+            <main className="container h-full flex-grow flex flex-col pb-4">
+                <Display
+                    onSelect={handleSelect}
+                    sentences={sentences}
+                    activeSentenceId={currentTrackIndex}
+                    isPending={isPending}
+                />
+                <Player
+                    isPending={isPending}
+                    onTogglePlay={isPlaying ? pause : play}
+                    onNext={playNext}
+                    onPrev={playPrevious}
+                    isPlaying={isPlaying}
+                    currentIndex={currentTrackIndex}
+                    length={sentences.length}
+                    onActiveIndexChange={handleActiveIndexChange}
+                    autoPlay={autoPlay}
+                    onAutoPlayChange={handleAutoPlayChange}
+                    delay={delay}
+                    onDelayChange={handleDelayChange}
+                />
+            </main>
+        </Page>
     )
 }
 

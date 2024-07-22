@@ -57,7 +57,7 @@ export const Player = (props: IPlayerProps) => {
                 </button>
             </div>
             <div className='flex-1 flex justify-end'>
-                <select onChange={handleDelayChange} value={props.delay}>
+                <select className='select' onChange={handleDelayChange} value={props.delay}>
                     <option value={0}>No Delay &nbsp;</option>
                     <option value={1}>Delay 1</option>
                     <option value={2}>Delay 2</option>

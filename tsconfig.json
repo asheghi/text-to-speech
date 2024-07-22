@@ -24,7 +24,16 @@
     "noFallthroughCasesInSwitch": true,
     "types": [
       "bun-types"
-    ]
+    ],
+    "baseUrl": "./",
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ],
+      "#/*": [
+        "./server/*"
+      ]
+    }
   },
   "include": [
     "src"
