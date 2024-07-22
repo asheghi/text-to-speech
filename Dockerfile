@@ -1,5 +1,9 @@
 FROM oven/bun:debian
 
+RUN apt-get update
+
+RUN apt-get install -y bzip2
+
 WORKDIR /app
 
 # Copy the lock and package file
