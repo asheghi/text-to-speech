@@ -1,30 +1,30 @@
-# React + TypeScript + Vite
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+# BabbleBot
 
-Currently, two official plugins are available:
+A full-stack text-to-speech application built with TypeScript for execution on Bun.js/Node.js runtimes. Utilizes Sherpa-ONNX to generate audio from input text.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+**Generate Audio from Text**
+Convert written text into spoken audio in a chosen language and voice model.
 
-## Expanding the ESLint configuration
+**Sentence-by-Sentence Reader**
+Listen to text, one sentence at a time, with the option to pause or resume playback.
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+**Fetch Audio Models List**
+Browse through 46+ supported languages and over 200+ available voice models.
 
-- Configure the top-level `parserOptions` property like this:
+## Installation
 
-```js
-export default {
-  // other rules...
-  parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
-    project: ['./tsconfig.json', './tsconfig.node.json'],
-    tsconfigRootDir: __dirname,
-  },
-}
+```bash
+docker build -t babble-bot
+docker run -v ./path-to-dir:/data -p 3001:8080 --name babble babble-bot
 ```
 
-- Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
-- Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
+## Development
+
+```bash
+# run back-end
+bun run --watch server/index.ts
+
+# run front-end
+bun run dev
+```
