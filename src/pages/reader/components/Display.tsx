@@ -6,6 +6,7 @@ export const Display = (props: {
     onSelect: (id: number) => void;
     sentences: SentenceType[];
     activeSentenceId: string | number;
+    className?: string;
 }) => {
     const scrollContainer = useRef<HTMLDivElement>(null);
 
@@ -17,8 +18,8 @@ export const Display = (props: {
         scrollContainer.current.scrollTop = activeElement.offsetTop - scrollContainer.current.clientHeight / 2 + activeElement.clientHeight / 2;
     }, [props.activeSentenceId])
 
-    return <div className="border rounded-xl shadow-xl border-gray-300 overflow-hidden px-2 h-full flex-grow">
-        <div ref={scrollContainer} className="flex flex-col gap-1 max-h-[80vh] overflow-x-auto scroll-smooth my-4">
+    return <div className={"border rounded-xl shadow-xl border-gray-300 px-2 h-full flex-grow " + props.className}>
+        <div ref={scrollContainer} className="flex flex-col gap-1 max-h-[75dvh] overflow-y-auto scroll-smooth my-4">
             {props.sentences.map(it => {
                 const isActive = it.id === props.activeSentenceId;
                 return <span

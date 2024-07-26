@@ -61,37 +61,26 @@ const ReaderPage = (): JSX.Element => {
         return 0;
     });
 
+    const links = sentences.map(it => {
+        const url = getTtsLink(it.text, model);
+        return url;
+    });
+
     const {
         isPlaying,
         isPending,
         currentTrackIndex,
-        setPlaylist,
         play,
         pause,
         playNext,
         playPrevious,
-        addEventListener,
-        removeEventListener,
         setCurrentTrackIndex,
-    } = useAudioPlayer({ autoPlay, delay, sentences });
+        isWaiting,
+    } = useAudioPlayer({ autoPlay, delay, sentences, playlist: links });
 
     useEffect(() => {
-        const links = sentences.map(it => {
-            const url = getTtsLink(it.text, model);
-            return url;
-        });
-
         // trigger loading audio files one by one
         loadSentences(links);
-
-        setPlaylist(links);
-
-        const handleFinish = () => console.log('Audio finished playing');
-        addEventListener('finish', handleFinish);
-
-        return () => {
-            removeEventListener('finish', handleFinish);
-        };
     }, []);
 
     // preload next sentences
@@ -144,6 +133,7 @@ const ReaderPage = (): JSX.Element => {
                     onAutoPlayChange={handleAutoPlayChange}
                     delay={delay}
                     onDelayChange={handleDelayChange}
+                    isWaiting={isWaiting}
                 />
             </main>
         </Page>

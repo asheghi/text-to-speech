@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+body{
+    height: 100dvh;
+    overflow-y: auto;
+    position: relative;
+}
+
 
 .container{
     @apply px-4 md:px-0 mx-auto;

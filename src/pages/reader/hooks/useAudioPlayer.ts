@@ -1,223 +1,93 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { SentenceType } from '../types/SentenceType';
+import debug from 'debug'
+import { useAudioPlayer as useAudioPlayerReact } from 'react-use-audio-player';
+
+
+const log = debug('audio-player');
+debug.enable("*")
 
 interface AudioPlayerHook {
   isPlaying: boolean;
-  duration: number;
   isPending: boolean;
-  finished: boolean;
-  currentTime: number;
   currentTrackIndex: number;
-  setPlaylist: (urls: string[]) => void;
   setCurrentTrackIndex: (index: number) => void;
   play: () => void;
   pause: () => void;
   stop: () => void;
-  seek: (time: number) => void;
   playNext: () => void;
   playPrevious: () => void;
-  addEventListener: (event: string, callback: () => void) => void;
-  removeEventListener: (event: string, callback: () => void) => void;
+  isWaiting: boolean;
 }
 
-const useAudioPlayer = (args: { autoPlay: boolean, delay: number | string, sentences?: SentenceType[] }): AudioPlayerHook => {
-  console.log({ args });
+const useAudioPlayer = (args: { autoPlay: boolean, delay: number | string, sentences?: SentenceType[], playlist: string[] }): AudioPlayerHook => {
+  const [currentAudioIndex, setCurrentIndex] = useState(0);
+  const player = useAudioPlayerReact();
+  const [delayTimeout,setDelayTimeout] = useState<number>();
 
-  const [playlist, setPlaylistState] = useState<string[]>([]);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isPending, setIsPending] = useState(false);
-  const [finished, setFinished] = useState(false);
-  const [duration, setDuration] = useState(0);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [,setRenderIndex] = useState(0);
-  const delayTimeout = useRef<Timer>();
-
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const eventListeners = useRef<{ [key: string]: (() => void)[] }>({});
-  const playlistRef = useRef<string[]>([]);
-  const currentTrackIndexRef = useRef<number>(0);
-
-
-  const setPlaylist = useCallback((urls: string[]) => {
-    setPlaylistState(urls);
-    playlistRef.current = urls;
-  }, []);
-
-  const setCurrentTrackIndex = useCallback((index: number) => {
-    if (index >= 0 && index < playlistRef.current.length) {
-      currentTrackIndexRef.current = index;
-      setFinished(false);
-      setCurrentTime(0);
-      if (audioRef.current) {
-        audioRef.current.src = playlistRef.current[index];
-      }
-      if (args.autoPlay) {
-        play();
-      }
+  const handlePlayNext = () => setCurrentIndex(p => {
+    if (p < args.playlist.length - 1) {
+      return p + 1;
     }
-    setRenderIndex(r => r + 1);
-    if (delayTimeout.current) {
-      clearTimeout(delayTimeout.current)
+    return args.autoPlay ? 0 : p;
+  });
+
+  const handlePlayPrevious = () => setCurrentIndex(p => {
+    if (p > 0) {
+      return p - 1;
     }
-  }, [isPlaying]);
+    return 0;
+  });
 
-  useEffect(() => {
-    const audio = new Audio();
-    audioRef.current = audio;
 
-    const handleLoadStart = () => setIsPending(true);
-    const handleCanPlay = () => setIsPending(false);
-
-    audio.addEventListener('loadstart', handleLoadStart);
-    audio.addEventListener('canplay', handleCanPlay);
-    audio.addEventListener('ended', handleEnded);
-    audio.addEventListener('timeupdate', handleTimeUpdate);
-    audio.addEventListener('durationchange', handleDurationChange);
-
-    return () => {
-      audio.removeEventListener('loadstart', handleLoadStart);
-      audio.removeEventListener('canplay', handleCanPlay);
-      audio.removeEventListener('ended', handleEnded);
-      audio.removeEventListener('timeupdate', handleTimeUpdate);
-      audio.removeEventListener('durationchange', handleDurationChange);
-      audio.pause();
-    };
-  }, []);
-
-  useEffect(() => {
-    if (playlist.length > 0 && audioRef.current) {
-      audioRef.current.src = playlist[currentTrackIndexRef.current];
-      setFinished(false);
-      setCurrentTime(0);
-      if (isPlaying) {
-        audioRef.current.play();
-      }
-      if (args.autoPlay) {
-        play();
-      }
+  const clearDelayTimeout = () => {
+    if(delayTimeout){
+      clearTimeout(delayTimeout);
     }
-  }, [playlist]);
-
-  const handleEnded = useCallback(async () => {
-    setIsPlaying(false);
-    setFinished(true);
-
-    if (args.delay) {
-      let delaySeconds = 0;
-      if (args.delay === 'auto') {
-        const wordCount = (args?.sentences?.[currentTrackIndexRef.current]?.text ?? "").split(' ').length;
-        delaySeconds = wordCount * .6 * 1000;
-      } else if (typeof args.delay === 'number') {
-        delaySeconds = args.delay * 1000;
-      }
-      await new Promise(r => delayTimeout.current = setTimeout(r, delaySeconds))
-    }
-
-    triggerEvent('finish');
-
-    if (args.autoPlay) {
-      playNext();
-    }
-  }, []);
-
-  const handleTimeUpdate = () => {
-    if (audioRef.current) {
-      setCurrentTime(audioRef.current.currentTime);
-      setIsPlaying(!audioRef.current.paused)
-    }
+    setDelayTimeout(undefined);
   };
 
-  const handleDurationChange = () => {
-    if (audioRef.current) {
-      setDuration(audioRef.current.duration);
-    }
-  };
-
-  const play = useCallback(async () => {
-    if (audioRef.current) {
-      try {
-        await audioRef.current.play();
-        setIsPlaying(true);
-        setFinished(false);
-      } catch (ignored) {
-        console.log(ignored);
+  useEffect(() => {
+    log("Loading audio", currentAudioIndex);
+    clearDelayTimeout();
+    player.load(args.playlist[currentAudioIndex], {
+      format: 'wav',
+      autoplay: args.autoPlay, onend: () => {
+        log("onend", args.autoPlay);
+        if (args.delay) {
+          clearDelayTimeout();
+          let delaySeconds = 0;
+          if (args.delay === 'auto') {
+            const wordCount = (args?.sentences?.[currentAudioIndex]?.text ?? "").split(' ').length;
+            delaySeconds = wordCount * .6 * 1000;
+          } else if (typeof args.delay === 'number') {
+            delaySeconds = args.delay * 1000;
+          }
+          setDelayTimeout(setTimeout(() => {
+            handlePlayNext();
+            clearDelayTimeout();
+          }, delaySeconds) as unknown as number);
+        } else {
+          handlePlayNext();
+        }
       }
-    }
-  }, []);
+    });
+  }, [currentAudioIndex])
 
-  const pause = useCallback(() => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      setIsPlaying(false);
-    }
-  }, []);
 
-  const stop = useCallback(() => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-      setIsPlaying(false);
-      setFinished(false);
-      setCurrentTime(0);
-    }
-  }, []);
-
-  const seek = useCallback((time: number) => {
-    if (audioRef.current) {
-      audioRef.current.currentTime = time;
-      setCurrentTime(time);
-    }
-  }, []);
-
-  const playNext = useCallback(() => {
-    const nextIndex = (currentTrackIndexRef.current + 1) % playlistRef.current.length;
-    setCurrentTrackIndex(nextIndex);
-  }, [setCurrentTrackIndex]);
-
-  const playPrevious = useCallback(() => {
-    const prevIndex = (currentTrackIndexRef.current - 1 + playlistRef.current.length) % playlistRef.current.length;
-    setCurrentTrackIndex(prevIndex);
-  }, [setCurrentTrackIndex]);
-
-  const addEventListener = useCallback((event: string, callback: () => void) => {
-    if (!eventListeners.current[event]) {
-      eventListeners.current[event] = [];
-    }
-    eventListeners.current[event].push(callback);
-  }, []);
-
-  const removeEventListener = useCallback((event: string, callback: () => void) => {
-    if (eventListeners.current[event]) {
-      eventListeners.current[event] = eventListeners.current[event].filter(
-        (cb) => cb !== callback
-      );
-    }
-  }, []);
-
-  const triggerEvent = useCallback((event: string) => {
-    if (eventListeners.current[event]) {
-      eventListeners.current[event].forEach((callback) => callback());
-    }
-  }, []);
 
   return {
-    isPlaying,
-    duration,
-    isPending,
-    finished,
-    currentTime,
-    currentTrackIndex: currentTrackIndexRef.current,
-    setPlaylist,
-    setCurrentTrackIndex,
-    play,
-    pause,
-    stop,
-    seek,
-    playNext,
-    playPrevious,
-    addEventListener,
-    removeEventListener,
-  };
-};
+    setCurrentTrackIndex: setCurrentIndex,
+    isPlaying: player.playing,
+    play: player.play,
+    currentTrackIndex: currentAudioIndex,
+    pause: player.pause,
+    stop: player.stop,
+    playNext: handlePlayNext,
+    playPrevious: handlePlayPrevious,
+    isPending:  player.isLoading,
+    isWaiting: !!delayTimeout,
+  }
+}
 
 export default useAudioPlayer;

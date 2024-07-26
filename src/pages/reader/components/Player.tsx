@@ -4,7 +4,8 @@ import PlayIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import NextIcon from '@mui/icons-material/KeyboardDoubleArrowRight'
 import PrevIcon from '@mui/icons-material/KeyboardDoubleArrowLeft'
-import PendingIcon from '@mui/icons-material/Pending'
+import PendingIcon from '@mui/icons-material/DownloadingOutlined'
+import WaitingIcon from '@mui/icons-material/TimerOutlined'
 
 
 interface IPlayerProps {
@@ -19,7 +20,9 @@ interface IPlayerProps {
     onAutoPlayChange: (value: boolean) => void;
     delay: number;
     isPending: boolean;
+    isWaiting: boolean;
     onDelayChange : (delay : number | string) => void;
+    className?: string;
 }
 
 export const Player = (props: IPlayerProps) => {
@@ -37,7 +40,7 @@ export const Player = (props: IPlayerProps) => {
         props.onDelayChange(parseInt(value))
     }
 
-    return <div>
+    return <div className={props.className}>
         <input className="slider" type="range" min={0} max={props.length - 1} value={props.currentIndex} onChange={handleSeek} />
         <div className="flex ">
             <div className='flex-1 flex gap-2 items-center'>
@@ -51,7 +54,7 @@ export const Player = (props: IPlayerProps) => {
                 <button onClick={props.onPrev}>
                     <PrevIcon />
                 </button>
-                <button onClick={props.onTogglePlay}>{props.isPending ? <PendingIcon /> : props.isPlaying ? <PauseIcon /> : <PlayIcon />}</button>
+                <button onClick={props.onTogglePlay}>{props.isWaiting ? <WaitingIcon /> : props.isPending ? <PendingIcon /> : props.isPlaying ? <PauseIcon /> : <PlayIcon />}</button>
                 <button onClick={props.onNext}>
                     <NextIcon />
                 </button>
