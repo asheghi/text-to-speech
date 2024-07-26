@@ -15,3 +15,5 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     </TrpcWrapper>
   </React.StrictMode>,
 )
+
+document.title = import.meta.env.VITE_APP_TITLE

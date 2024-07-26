@@ -30,7 +30,9 @@ export const IndexPage = (): JSX.Element => {
     const readerLink = '/reader?' + qs.stringify(formState)
 
 
-    return <Page headerTitle="Text To Speech" >
+    const appName = import.meta.env.VITE_APP_TITLE ?? "Text To Speech";
+    
+    return <Page headerTitle={appName} >
         <main className="mx-auto container flex flex-col gap-4">
             <Form player={<Player url={url} state={state} />} isPending={state === RequestState.PENDING} onFormChange={state => setFormState(state)} onSubmit={handleFormSubmit} />
             <Link

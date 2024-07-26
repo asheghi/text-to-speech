@@ -1,6 +1,7 @@
 import express from 'express'
 import path from 'path';
 import fs from 'fs';
+import {env} from './env'
 
 const fallbackRouter = express.Router();
 // fallbackRouter.all("*", (req, res) => {
@@ -21,7 +22,7 @@ export const SpaExpressRouter = (distPath: string) => {
         return fallbackRouter;
     }
 
-    const indexFileContent = fs.readFileSync(indexPath, "utf-8");
+    const indexFileContent = fs.readFileSync(indexPath, "utf-8").replace("AppTitle",env.VITE_APP_TITLE);
 
     // serve files
     app.use(express.static(distPath));
