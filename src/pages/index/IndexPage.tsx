@@ -7,6 +7,7 @@ import { Page } from "@/components/Page";
 import { Link } from "react-router-dom";
 import qs from 'qs';
 import { FormType } from "./FormType";
+import ReadIcon from '@mui/icons-material/AutoStories';
 
 
 export const IndexPage = (): JSX.Element => {
@@ -31,15 +32,30 @@ export const IndexPage = (): JSX.Element => {
 
 
     const appName = import.meta.env.VITE_APP_TITLE ?? "Text To Speech";
-    
+
+    function handleStateChange(params: FormType): void {
+        // compare formState with params
+        if (JSON.stringify(params) !== JSON.stringify(formState)) {
+            setFormState(params);
+        }
+    }
+
+    const canRead = formState?.language && formState.model;
+
     return <Page headerTitle={appName} >
         <main className="mx-auto container flex flex-col gap-4">
-            <Form player={<Player url={url} state={state} />} isPending={state === RequestState.PENDING} onFormChange={state => setFormState(state)} onSubmit={handleFormSubmit} />
-            <Link
+            <Form
+                player={state === RequestState.SUCCESS && <Player url={url} />}
+                isPending={state === RequestState.PENDING}
+                onFormChange={handleStateChange}
+                onSubmit={handleFormSubmit} />
+            {canRead && <Link
                 type="submit"
-                className="self-end bg-blue-500 text-white px-4 py-2 rounded-md text-xl font-semibold"
+                className="self-end bg-gray-500 text-white px-4 py-2 rounded-md text-xl font-semibold flex gap-2"
                 to={readerLink}
-            >Read ️📖</Link>
+            >Read ️
+                <ReadIcon />
+            </Link>}
         </main>
     </Page>
 }

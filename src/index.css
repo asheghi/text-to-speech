@@ -8,6 +8,10 @@ body{
     position: relative;
 }
 
+.page{
+    @apply bg-gray-100;
+}
+
 
 .container{
     @apply px-4 md:px-0 mx-auto;

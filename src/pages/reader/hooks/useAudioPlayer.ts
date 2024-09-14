@@ -20,10 +20,10 @@ interface AudioPlayerHook {
   isWaiting: boolean;
 }
 
-const useAudioPlayer = (args: { autoPlay: boolean, delay: number | string, sentences?: SentenceType[], playlist: string[] }): AudioPlayerHook => {
+const useAudioPlayer = (args: { autoPlay: boolean, delay: number | string, sentences?: SentenceType[], playlist: string[], loop: boolean }): AudioPlayerHook => {
   const [currentAudioIndex, setCurrentIndex] = useState(0);
   const player = useAudioPlayerReact();
-  const [delayTimeout,setDelayTimeout] = useState<number>();
+  const [delayTimeout, setDelayTimeout] = useState<number>();
 
   const handlePlayNext = () => setCurrentIndex(p => {
     if (p < args.playlist.length - 1) {
@@ -41,11 +41,15 @@ const useAudioPlayer = (args: { autoPlay: boolean, delay: number | string, sente
 
 
   const clearDelayTimeout = () => {
-    if(delayTimeout){
+    if (delayTimeout) {
       clearTimeout(delayTimeout);
     }
     setDelayTimeout(undefined);
   };
+
+  useEffect(() => {
+    player.loop(args.loop);
+  }, [args.loop])
 
   useEffect(() => {
     log("Loading audio", currentAudioIndex);
@@ -58,7 +62,7 @@ const useAudioPlayer = (args: { autoPlay: boolean, delay: number | string, sente
           clearDelayTimeout();
           let delaySeconds = 0;
           if (args.delay === 'auto') {
-            const wordCount = (args?.sentences?.[currentAudioIndex]?.text ?? "").split(' ').length;
+            const wordCount = (args?.sentences?.[currentAudioIndex] ?? "").split(' ').length;
             delaySeconds = wordCount * .6 * 1000;
           } else if (typeof args.delay === 'number') {
             delaySeconds = args.delay * 1000;
@@ -74,8 +78,6 @@ const useAudioPlayer = (args: { autoPlay: boolean, delay: number | string, sente
     });
   }, [currentAudioIndex])
 
-
-
   return {
     setCurrentTrackIndex: setCurrentIndex,
     isPlaying: player.playing,
@@ -85,7 +87,7 @@ const useAudioPlayer = (args: { autoPlay: boolean, delay: number | string, sente
     stop: player.stop,
     playNext: handlePlayNext,
     playPrevious: handlePlayPrevious,
-    isPending:  player.isLoading,
+    isPending: player.isLoading,
     isWaiting: !!delayTimeout,
   }
 }

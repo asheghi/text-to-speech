@@ -7,6 +7,7 @@ import {
 import './index.css'
 import TrpcWrapper from './TrpcWrapper';
 import { router } from './router';
+import packageInfo from '../package.json'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
@@ -16,4 +17,4 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   </React.StrictMode>,
 )
 
-document.title = import.meta.env.VITE_APP_TITLE
+document.title = import.meta.env.VITE_APP_TITLE ?? packageInfo.name

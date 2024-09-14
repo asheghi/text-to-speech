@@ -1,0 +1,25 @@
+.display-wrapper{
+    @apply border rounded-xl shadow-xl border-gray-300 px-4 h-full flex-grow bg-white;
+}
+
+.display{
+    @apply flex flex-col gap-1  overflow-x-hidden overflow-y-auto scroll-smooth py-4;
+}
+
+
+.sentence{
+    @apply relative; 
+    @apply box-decoration-clone rounded-md break-all py-0 md:text-2xl text-lg self-start transition-all mr-1;
+    @apply  cursor-pointer hover:bg-gray-200;
+
+    padding-left: 2px;
+    padding-right: 2px;
+
+    &.loading{
+        @apply bg-gray-200;
+    }
+
+    &.active{
+        @apply bg-yellow-200 ;
+    }
+}

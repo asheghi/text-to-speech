@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { SentenceType } from "../types/SentenceType"
+import "./Display.scss"
 
 export const Display = (props: {
     isPending: boolean;
@@ -18,19 +19,27 @@ export const Display = (props: {
         scrollContainer.current.scrollTop = activeElement.offsetTop - scrollContainer.current.clientHeight / 2 + activeElement.clientHeight / 2;
     }, [props.activeSentenceId])
 
-    return <div className={"border rounded-xl shadow-xl border-gray-300 px-2 h-full flex-grow " + props.className}>
-        <div ref={scrollContainer} className="flex flex-col gap-1 max-h-[75dvh] overflow-y-auto scroll-smooth my-4">
-            {props.sentences.map(it => {
-                const isActive = it.id === props.activeSentenceId;
-                return <span
-                    onClick={() => {
-                        props.onSelect(it.id)
-                    }}
-                    id={'sentence-' + it.id}
-                    key={it.id} className={`rounded-md px-2 py-1 md:text-2xl text-lg self-start transition-all ` + (props.isPending && isActive ? "bg-gray-300" : isActive ? " bg-sky-200 " : " cursor-pointer hover:bg-gray-300")}>
-                    {it.text}
-                </span>
-            })}
+    return <div className={"display-wrapper " + props.className}>
+        <div ref={scrollContainer} className="display" style={{
+            height: 'calc(100dvh - 170px)'
+        }}>
+            <p>
+                {props.sentences.map((it, index) => {
+                    const isActive = index === props.activeSentenceId;
+                    return <>
+                        <span
+                            onClick={() => {
+                                props.onSelect(index)
+                            }}
+                            id={'sentence-' + index}
+                            key={index}
+                            className={`sentence ` + (props.isPending && isActive ? " loading " : isActive ? " active " : "")}>
+                            {it.trim()}
+                        </span>
+                        {it.endsWith('\n') && <br className="block mb-3" style={{ content: "''" }} />}
+                    </>
+                })}
+            </p>
         </div>
     </div>
 }

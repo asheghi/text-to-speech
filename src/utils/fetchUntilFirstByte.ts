@@ -5,16 +5,16 @@ let count = 0;
 export async function fetchUntilFirstByte(url: string, retryCount = 0) {
     if (cache.get(url)) return;
 
-    while (count > 8) {
-        await new Promise(r => setTimeout(r, 500))
+    while (count > 0) {
+        await new Promise(r => setTimeout(r, 100))
     }
 
     try {
         count++;
         const response = await fetch(url, { method: 'GET' });
         if (response.ok) {
-            console.log(`[fetchUntilFirstByte] URL is reachable. Status: ${response.status}`);
-            console.log(`[fetchUntilFirstByte] Content-Type: ${response.headers.get('Content-Type')}`);
+            // console.log(`[fetchUntilFirstByte] URL is reachable. Status: ${response.status}`);
+            // console.log(`[fetchUntilFirstByte] Content-Type: ${response.headers.get('Content-Type')}`);
             cache.set(url, true);
         } else {
             console.log(`[fetchUntilFirstByte] URL is not reachable. Status: ${response.status}`);

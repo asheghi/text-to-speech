@@ -7,7 +7,7 @@
     @apply fixed top-0 inset-x-0 z-50 px-4 py-2 h-[50px] flex items-center;
 
     /* Style */
-    @apply bg-blue-500 text-white;
+    @apply bg-white;
     @apply shadow-lg ;
 
     .header-content {
@@ -21,7 +21,7 @@
     }
 
     .back-link {
-        @apply flex items-center justify-center hover:bg-blue-800 p-1 rounded transition-all;
+        @apply flex items-center justify-center hover:bg-gray-200 p-1 rounded transition-all;
     }
 
     .back-icon {

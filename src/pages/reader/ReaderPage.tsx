@@ -9,31 +9,27 @@ import useAudioPlayer from "./hooks/useAudioPlayer";
 import qs from 'qs'
 import { Page } from "@/components/Page";
 
-// create a function to create random string
-export function createRandomString(length: number): string {
-    let result = '';
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    for (let i = 0; i < length; i++) {
-        result += characters.charAt(Math.floor(Math.random() * characters.length));
-    }
-    return result
-}
-
 function splitToSentences(text: string): SentenceType[] {
-    text = text.replaceAll("\\n", "").replaceAll('-', '').replaceAll("\\\"", "").replaceAll("\"", "").replaceAll("#", "")
-    return text.split(/(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?|!|:)\s/)
-        .map((sentence) => sentence.trim().toLowerCase())
-        .map(it => it.trim()).filter(it => it && it.length)
-        .map((it, index) => {
-            return {
-                text: it,
-                id: index,
+    return text.split('\n')
+        .map(it => it + '\n')
+        .flatMap(it => {
+            return it
+                .replace(/".*"/g, match => match + '|')
+                .replace(/\. /g, '.|')
+                .replace(/:+/g, ':|')
+                .replace(/\?/g, '?|')
+                .replace(/!/g, '!|')
+                .replace(/;/g, ';|')
+                .split("|")
+        })
+        .map((it, index, arr) => {
+            if (arr[index + 1] === '\n') {
+                return it + '\n';
             }
-        });
+            return it;
+        })
+        .filter(it => !!it.trim().length)
 }
-
-
-
 
 async function loadSentences(urls: string[]): Promise<void> {
     for await (const url of urls) {
@@ -46,6 +42,12 @@ const ReaderPage = (): JSX.Element => {
     const text = params?.text ?? '';
     const model = params?.model ?? '';
     const sentences = splitToSentences(text);
+
+    console.log("text:", text);
+    console.log("sentences:", sentences);
+
+    const [isLoop,setIsLoop] = useState(false);
+
 
     const [autoPlay, setAutoPlay] = useState(() => {
         return !!localStorage.getItem('autoPlay') ?? false;
@@ -62,7 +64,7 @@ const ReaderPage = (): JSX.Element => {
     });
 
     const links = sentences.map(it => {
-        const url = getTtsLink(it.text, model);
+        const url = getTtsLink(it, model);
         return url;
     });
 
@@ -76,21 +78,30 @@ const ReaderPage = (): JSX.Element => {
         playPrevious,
         setCurrentTrackIndex,
         isWaiting,
-    } = useAudioPlayer({ autoPlay, delay, sentences, playlist: links });
+        stop,
+    } = useAudioPlayer({ autoPlay, delay, sentences, playlist: links, loop: isLoop });
+
+    // preload next 3 sentence
+    useEffect(() => {
+        if (currentTrackIndex >= links.length - 2) {
+            return;
+        }
+        loadSentences([links[currentTrackIndex + 1]]);
+        loadSentences([links[currentTrackIndex + 2]]);
+        loadSentences([links[currentTrackIndex + 3]]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentTrackIndex]);
 
     useEffect(() => {
-        // trigger loading audio files one by one
-        loadSentences(links);
-    }, []);
+        return () => {
+            try {
+                stop();
+            } catch (ignored) {
+                console.log(ignored);
 
-    // preload next sentences
-    useEffect(() => {
-        sentences.forEach(it => {
-            const url = getTtsLink(it.text, model);
-            fetchUntilFirstByte(url)
-        });
-    }, []);
-
+            }
+        }
+    }, [])
 
     function handleSelect(id: number): void {
         setCurrentTrackIndex(id)
@@ -111,9 +122,13 @@ const ReaderPage = (): JSX.Element => {
         localStorage.setItem('delay', JSON.stringify(newDelay));
     }
 
+    function handleLoopChange(selected: boolean): void {
+        setIsLoop(selected);
+    }
+
     return (
-        <Page headerTitle="Reader" backLink="/" >
-            <main className="container h-full flex-grow flex flex-col pb-4">
+        <Page headerTitle="Reader" backLink="/">
+            <main className="container h-full flex-grow flex flex-col gap-2">
                 <Display
                     onSelect={handleSelect}
                     sentences={sentences}
@@ -134,6 +149,8 @@ const ReaderPage = (): JSX.Element => {
                     delay={delay}
                     onDelayChange={handleDelayChange}
                     isWaiting={isWaiting}
+                    onLoopChange={handleLoopChange}
+                    isLoop={isLoop}
                 />
             </main>
         </Page>

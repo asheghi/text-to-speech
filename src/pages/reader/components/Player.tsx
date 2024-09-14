@@ -21,8 +21,10 @@ interface IPlayerProps {
     delay: number;
     isPending: boolean;
     isWaiting: boolean;
-    onDelayChange : (delay : number | string) => void;
+    onDelayChange: (delay: number | string) => void;
     className?: string;
+    onLoopChange: (selected: boolean) => void;
+    isLoop: boolean;
 }
 
 export const Player = (props: IPlayerProps) => {
@@ -36,11 +38,15 @@ export const Player = (props: IPlayerProps) => {
 
     function handleDelayChange(event: ChangeEvent<HTMLSelectElement>): void {
         const value = event.target.value;
-        if(value === 'auto') return props.onDelayChange(value);
+        if (value === 'auto') return props.onDelayChange(value);
         props.onDelayChange(parseInt(value))
     }
 
-    return <div className={props.className}>
+    function handleLoopChange(event: ChangeEvent<HTMLInputElement>): void {
+        props.onLoopChange(event.target.checked);
+    }
+
+    return <div className={"player " + props.className + ' bg-white '}>
         <input className="slider" type="range" min={0} max={props.length - 1} value={props.currentIndex} onChange={handleSeek} />
         <div className="flex ">
             <div className='flex-1 flex gap-2 items-center'>
@@ -49,6 +55,9 @@ export const Player = (props: IPlayerProps) => {
                     onChange={handleAutoPlayChange}
                     type="checkbox" id="auto-play" className='h-4 w-4' />
                 <label htmlFor="auto-play" className=''>Auto Play</label>
+                <span></span>
+                <input onChange={handleLoopChange} type="checkbox" id="loop" />
+                <label htmlFor="loop" >Loop</label>
             </div>
             <div className="center-buttons flex-1">
                 <button onClick={props.onPrev}>
@@ -69,6 +78,7 @@ export const Player = (props: IPlayerProps) => {
                     <option value={"auto"}>Auto</option>
                 </select>
             </div>
+
         </div>
     </div>
 }

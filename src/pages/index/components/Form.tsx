@@ -3,6 +3,8 @@ import { FormEvent, FormEventHandler, useCallback, useEffect, useMemo, useState 
 import { trpc } from "../../../api"
 import { languageList } from "./consts/languageList";
 import Dropdown from "./Dropdown";
+import GenerateIcon from '@mui/icons-material/SpatialAudioOff'
+import LoadingIcon from '@mui/icons-material/RecordVoiceOver';
 
 import "./Form.scss"
 import { FormType } from "../FormType";
@@ -97,9 +99,6 @@ export const Form = (props: IFormProps): JSX.Element => {
         setText(event.target.value);
     }
 
-
-
-
     return <form onSubmit={handleFormSubmit} className="form">
         <div className="form-group">
             <label className="">Language:</label>
@@ -136,8 +135,9 @@ export const Form = (props: IFormProps): JSX.Element => {
         <button
             disabled={props.isPending}
             type="submit"
-            className="self-end bg-blue-500 text-white px-4 rounded-md py-2 text-xl font-semibold">
-            Synthesize ▶️
+            className={`self-end ${props.isPending ? 'bg-gray-300': 'bg-gray-500'} text-white px-4 rounded-md py-2 text-xl font-semibold flex gap-2`}>
+            {props.isPending ? 'Generating' : 'Synthesize'}
+            {props.isPending ? <LoadingIcon />  : <GenerateIcon />}
         </button>
 
     </form>
