@@ -26,7 +26,7 @@ app.use(
     })
 );
 
-const handleTTS = async (req, res) => {
+const handleTTS = async (req: Request, res) => {
     const { text, model, } = req.query;
     // log request
     console.log(`Received request for TTS with model ${model} and text "${text}"`);
@@ -56,19 +56,21 @@ const handleTTS = async (req, res) => {
         return res.status(500).send('failed to get generated audio.');
     }
 
+    if(req.method === 'PUT'){
+        return res.send();
+    }
+
     const stat = fs.statSync(filePath);
     const fileSize = stat.size;
+
+ 
 
     res.writeHead(200, {
         'Content-Type': 'audio/wave',
         "Content-Length": fileSize,
-        'Content-Disposition': 'inline; filename="speech.wav"',
+        'Content-Disposition': `inline; filename="speech.wav"`,
+        'Cache-Control': 'public, max-age=604800'
     });
-
-    // res.setHeader('Content-Length', fileSize);
-    // res.setHeader('Content-Type', 'audio/wav');
-    // res.setHeader('Content-Disposition', 'inline; filename="speech.wav"');
-    // res.set('Cache-Control', 'public, max-age=604800');
 
     const readStream = fs.createReadStream(filePath);
 
@@ -82,7 +84,7 @@ const handleTTS = async (req, res) => {
 
 };
 app.all('/api/tts', handleTTS);
-app.get('/api/tts.wav', handleTTS);
+app.all('/api/tts.wav', handleTTS);
 
 
 app.use(SpaExpressRouter('dist'));

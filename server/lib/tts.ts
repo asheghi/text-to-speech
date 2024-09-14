@@ -5,10 +5,16 @@ import { join, resolve } from 'path';
 import { downloadModel } from './downloadModel.js';
 import objectHash from 'object-hash'
 import { env } from '../env';
+import os from 'node:os'
 
+
+const ThreadCount = env.THREAD_COUNT ?? (os.cpus()).length;
 
 async function createTTS(modelName?: string) {
     // console.log(`Generating sentence for model ${modelName} with text: ${text}`);
+    if(!modelName){
+        throw new Error('create TTS is called without model name');
+    }
     const baseDir = join(env.MODELS_DIR, modelName);
     // console.log(`Model directory: ${baseDir}`);
 
@@ -50,18 +56,18 @@ async function createTTS(modelName?: string) {
         model: {
             vits: vits,
             debug: true,
-            numThreads: env.THREAD_COUNT ?? 1,
+            numThreads: ThreadCount,
             provider: 'cpu',
 
         },
-        maxNumSentences: 1,
+        maxNumSentences: 0,
         ruleFsts: '', // could be added the same way filter and joing .fst files 
         //  example:  '/path/model-name/date.fst,/path/model-name/phone.fst'
         ruleFars: '', // save way .far files
         debug: true,
-        noiseScale: 10,
-        noiseScaleW: 10,
-        lengthScale: 1.5,
+        // noiseScale: 10,
+        // noiseScaleW: 10,
+        // lengthScale: 1,
     });
 
     return tts;
