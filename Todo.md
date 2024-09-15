@@ -21,10 +21,10 @@ Pattern: [Category] [priority] Todo
 
 ### Medium Priority
 
-- [ ] Frontend: add translation support for reader page - medium
+- [ ] Frontend: add translation support for reader page 
 
 ### Low Priority
 
-- [ ] Design: add dark theme switch - low
-- [ ] Design: update generate UI - low
-- [ ] Frontend: edit text in Reader page - low
+- [ ] Design: add dark theme switch
+- [ ] Design: update generate UI
+- [ ] Frontend: edit text in Reader page 
