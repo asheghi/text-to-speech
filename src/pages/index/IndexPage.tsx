@@ -8,6 +8,7 @@ import { Link } from "react-router-dom";
 import qs from 'qs';
 import { FormType } from "./FormType";
 import ReadIcon from '@mui/icons-material/AutoStories';
+import {Button} from '@mui/joy'
 
 
 export const IndexPage = (): JSX.Element => {
@@ -49,13 +50,15 @@ export const IndexPage = (): JSX.Element => {
                 isPending={state === RequestState.PENDING}
                 onFormChange={handleStateChange}
                 onSubmit={handleFormSubmit} />
-            {canRead && <Link
-                type="submit"
-                className="self-end bg-gray-500 text-white px-4 py-2 rounded-md text-xl font-semibold flex gap-2"
-                to={readerLink}
-            >Read ️
+            {canRead && <Button
+                className="self-end"
+                component="a"
+                href={readerLink}
+                color="neutral"
+            >
                 <ReadIcon />
-            </Link>}
+                Read ️
+            </Button>}
         </main>
     </Page>
 }

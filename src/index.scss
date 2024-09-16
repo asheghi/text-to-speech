@@ -14,7 +14,7 @@ body{
 
 
 .container{
-    @apply px-4 md:px-0 mx-auto;
+    @apply px-4 md:px-2 mx-auto;
 }
 
 /* scroobar style */
@@ -38,4 +38,19 @@ body{
 /* set button(top and bottom of the scrollbar) */
 *::-webkit-scrollbar-button {
     display:none;
+}
+
+
+
+/* MUI OVERRIDES */
+.MuiButton-root{
+    @apply flex gap-2;
+}
+
+.MuiFormLabel-root{
+    @apply flex gap-2;
+    svg {
+        width: 16px;
+        height: 16px;
+    }
 }

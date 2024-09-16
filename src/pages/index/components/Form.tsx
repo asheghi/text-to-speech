@@ -5,9 +5,13 @@ import { languageList } from "./consts/languageList";
 import Dropdown from "./Dropdown";
 import GenerateIcon from '@mui/icons-material/SpatialAudioOff'
 import LoadingIcon from '@mui/icons-material/RecordVoiceOver';
+import IconSpeaker from '@mui/icons-material/RecordVoiceOverOutlined'
+import IconLanguage from '@mui/icons-material/LanguageOutlined'
+import IconText from '@mui/icons-material/ArticleOutlined'
 
 import "./Form.scss"
 import { FormType } from "../FormType";
+import { Button, FormControl, FormHelperText, FormLabel, Textarea } from "@mui/joy";
 
 interface IFormProps {
     onFormChange: (params: FormType) => void;
@@ -100,45 +104,61 @@ export const Form = (props: IFormProps): JSX.Element => {
     }
 
     return <form onSubmit={handleFormSubmit} className="form">
-        <div className="form-group">
-            <label className="">Language:</label>
-            <Dropdown
-                isDisabled={props.isPending}
-                options={filteredLanguages.map(it => ({ value: it.code, lable: `${it.name} (${it.nativeName})` }))}
-                value={selectedLanguage}
-                onChange={handleLanguageSelect}
-                placeholder="Select a language"
-            />
+        <div className="flex flex-col gap-4 md:flex-row">
+            <FormControl className="flex-1">
+                <FormLabel>
+                    <IconLanguage />
+                    Language
+                </FormLabel>
+                <Dropdown
+                    isDisabled={props.isPending}
+                    options={filteredLanguages.map(it => ({ value: it.code, lable: `${it.name} (${it.nativeName})` }))}
+                    value={selectedLanguage}
+                    onChange={handleLanguageSelect}
+                    placeholder="Select a language"
+                />
+            </FormControl>
+            <FormControl className="flex-1">
+                <FormLabel >
+                    <IconSpeaker />
+                    Speaker
+                </FormLabel>
+                <Dropdown
+                    isDisabled={props.isPending}
+                    options={filteredModels.map(it => ({ value: it.modelName, lable: it.modelName }))}
+                    value={selectedModel}
+                    placeholder="Select a voice"
+                    onChange={function (newValue: any): void {
+                        setSelectedModel(newValue)
+                    }} />
+            </FormControl>
         </div>
-        <div className="form-group">
-            <label >Model:</label>
-            <Dropdown
-                isDisabled={props.isPending}
-                options={filteredModels.map(it => ({ value: it.modelName, lable: it.modelName }))}
-                value={selectedModel}
-                placeholder="Select a voice"
-                onChange={function (newValue: any): void {
-                    setSelectedModel(newValue)
-                }} />
-        </div>
-        <div className="form-group">
-            <label >Text:</label>
-            <textarea
+        <FormControl>
+            <FormLabel>
+                <IconText />
+                Text
+            </FormLabel>
+            <Textarea
                 disabled={props.isPending}
                 value={text}
                 onChange={handleTextChange}
                 placeholder="Enter text to synthesize"
-                className="w-full h-32 p-2 border rounded-md border-gray-300 min-h-[240px] outline-blue-500"
+                className="w-full"
+                maxRows={12}
+                minRows={6}
             />
-        </div>
+            <FormHelperText>text can be very long</FormHelperText>
+        </FormControl>
         {props.player}
-        <button
+        <Button
             disabled={props.isPending}
+            loading={props.isPending}
             type="submit"
-            className={`self-end ${props.isPending ? 'bg-gray-300': 'bg-gray-500'} text-white px-4 rounded-md py-2 text-xl font-semibold flex gap-2`}>
+            className="gap-2 self-end"
+        >
+            {props.isPending ? <LoadingIcon /> : <GenerateIcon />}
             {props.isPending ? 'Generating' : 'Synthesize'}
-            {props.isPending ? <LoadingIcon />  : <GenerateIcon />}
-        </button>
+        </Button>
 
     </form>
 }
