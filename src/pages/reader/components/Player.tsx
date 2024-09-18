@@ -1,11 +1,14 @@
 import './Player.scss'
-import { ChangeEvent } from "react";
 import PlayIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import NextIcon from '@mui/icons-material/KeyboardDoubleArrowRight'
 import PrevIcon from '@mui/icons-material/KeyboardDoubleArrowLeft'
 import PendingIcon from '@mui/icons-material/DownloadingOutlined'
 import WaitingIcon from '@mui/icons-material/TimerOutlined'
+import { Badge, Dropdown, IconButton, Menu, MenuButton, MenuItem, Slider, Tooltip } from '@mui/joy';
+import AutoPlayIcon from '@mui/icons-material/SlowMotionVideo';
+import RepeatIcon from '@mui/icons-material/Repeat';
+import DelayIcon from '@mui/icons-material/Timer';
 
 
 interface IPlayerProps {
@@ -28,55 +31,78 @@ interface IPlayerProps {
 }
 
 export const Player = (props: IPlayerProps) => {
-    function handleSeek(event: ChangeEvent<HTMLInputElement>): void {
-        props.onActiveIndexChange(parseInt(event.target.value))
+    function handleSeek(event: unknown,number: number | number[]): void {
+        if(Array.isArray(number)){
+            return;
+        }
+        props.onActiveIndexChange(number)
     }
 
-    function handleAutoPlayChange(event: ChangeEvent<HTMLInputElement>): void {
-        props.onAutoPlayChange(event.target.checked)
+    function handleAutoPlayChange(): void {
+        props.onAutoPlayChange(!props.autoPlay)
     }
 
-    function handleDelayChange(event: ChangeEvent<HTMLSelectElement>): void {
-        const value = event.target.value;
-        if (value === 'auto') return props.onDelayChange(value);
-        props.onDelayChange(parseInt(value))
+    function handleLoopChange(): void {
+        props.onLoopChange(!props.isLoop);
     }
 
-    function handleLoopChange(event: ChangeEvent<HTMLInputElement>): void {
-        props.onLoopChange(event.target.checked);
+    function handleDelaySelect(arg0: number | 'auto'): void {
+        props.onDelayChange(arg0)
     }
 
     return <div className={"player " + props.className + ' bg-white '}>
-        <input className="slider" type="range" min={0} max={props.length - 1} value={props.currentIndex} onChange={handleSeek} />
+        <Slider value={props.currentIndex} max={props.length - 1} min={0} onChange={handleSeek} />
         <div className="flex ">
             <div className='flex-1 flex gap-2 items-center'>
-                <input
-                    checked={props.autoPlay}
-                    onChange={handleAutoPlayChange}
-                    type="checkbox" id="auto-play" className='h-4 w-4' />
-                <label htmlFor="auto-play" className=''>Auto Play</label>
-                <span></span>
-                <input onChange={handleLoopChange} type="checkbox" id="loop" />
-                <label htmlFor="loop" >Loop</label>
+                <Tooltip title="Auto Play">
+                    <IconButton onClick={handleAutoPlayChange} aria-label='Auto Play'>
+                        <AutoPlayIcon color={props.autoPlay ? 'primary' : 'disabled'} />
+                    </IconButton>
+                </Tooltip>
+                <Tooltip title="Repeat">
+                    <IconButton onClick={handleLoopChange} aria-label='Repeat'>
+                        <RepeatIcon color={props.isLoop ? 'primary' : 'disabled'} />
+                    </IconButton>
+                </Tooltip>
             </div>
             <div className="center-buttons flex-1">
-                <button onClick={props.onPrev}>
-                    <PrevIcon />
-                </button>
-                <button onClick={props.onTogglePlay}>{props.isWaiting ? <WaitingIcon /> : props.isPending ? <PendingIcon /> : props.isPlaying ? <PauseIcon /> : <PlayIcon />}</button>
-                <button onClick={props.onNext}>
-                    <NextIcon />
-                </button>
+                <Tooltip title="Previous">
+
+                    <IconButton onClick={props.onPrev}>
+                        <PrevIcon />
+                    </IconButton>
+                </Tooltip>
+                <Tooltip title={props.isWaiting ? "Waiting..." : props.isPending ? "Loading..." : props.isPlaying ? "Pause" : "Play"}>
+
+                    <IconButton onClick={props.onTogglePlay}>
+                        {props.isWaiting ? <WaitingIcon /> : props.isPending ? <PendingIcon /> : props.isPlaying ? <PauseIcon /> : <PlayIcon />}
+                    </IconButton>
+                </Tooltip>
+                <Tooltip title="Next">
+
+                    <IconButton onClick={props.onNext}>
+                        <NextIcon />
+                    </IconButton>
+                </Tooltip>
             </div>
             <div className='flex-1 flex justify-end'>
-                <select className='select' onChange={handleDelayChange} value={props.delay}>
-                    <option value={0}>No Delay &nbsp;</option>
-                    <option value={1}>Delay 1</option>
-                    <option value={2}>Delay 2</option>
-                    <option value={3}>Delay 3</option>
-                    <option value={4}>Delay 4</option>
-                    <option value={"auto"}>Auto</option>
-                </select>
+                <Dropdown>
+                    <MenuButton
+                        slots={{ root: Badge }}
+                        slotProps={{ root: { badgeContent: props.delay, color: 'neutral',  } }}
+                    >
+                        <DelayIcon color={props.delay ? 'action' : 'disabled'}/>
+                    </MenuButton>
+                    <Menu>
+                        <MenuItem onClick={() => handleDelaySelect(0)}>No Delay</MenuItem>
+                        <MenuItem onClick={() => handleDelaySelect(1)}>1 Second</MenuItem>
+                        <MenuItem onClick={() => handleDelaySelect(2)}>2 Seconds</MenuItem>
+                        <MenuItem onClick={() => handleDelaySelect(3)}>3 Seconds</MenuItem>
+                        <MenuItem onClick={() => handleDelaySelect(4)}>4 Seconds</MenuItem>
+                        <MenuItem onClick={() => handleDelaySelect(5)}>5 Seconds</MenuItem>
+                        <MenuItem onClick={() => handleDelaySelect('auto')}>Auto</MenuItem>
+                    </Menu>
+                </Dropdown>
             </div>
 
         </div>
