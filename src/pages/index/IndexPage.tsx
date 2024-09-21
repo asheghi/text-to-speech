@@ -4,7 +4,6 @@ import { Form } from "./components/Form";
 import { RequestState } from "./components/consts/RequestState";
 import { Player } from "./components/Player";
 import { Page } from "@/components/Page";
-import { Link } from "react-router-dom";
 import qs from 'qs';
 import { FormType } from "./FormType";
 import ReadIcon from '@mui/icons-material/AutoStories';

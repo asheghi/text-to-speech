@@ -31,7 +31,7 @@ interface IPlayerProps {
 }
 
 export const Player = (props: IPlayerProps) => {
-    function handleSeek(event: unknown,number: number | number[]): void {
+    function handleSeek(_event: Event,number: number | number[]): void {
         if(Array.isArray(number)){
             return;
         }
