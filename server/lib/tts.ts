@@ -11,12 +11,10 @@ import os from 'node:os'
 const ThreadCount = env.THREAD_COUNT ?? (os.cpus()).length;
 
 async function createTTS(modelName?: string) {
-    // console.log(`Generating sentence for model ${modelName} with text: ${text}`);
     if(!modelName){
         throw new Error('create TTS is called without model name');
     }
     const baseDir = join(env.MODELS_DIR, modelName);
-    // console.log(`Model directory: ${baseDir}`);
 
     if (!fs.existsSync(baseDir)) {
         console.log(`Model directory ${baseDir} does not exist`);

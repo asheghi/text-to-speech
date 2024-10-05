@@ -56,14 +56,14 @@ const handleTTS = async (req: Request, res) => {
         return res.status(500).send('failed to get generated audio.');
     }
 
-    if(req.method === 'PUT'){
+    if (req.method === 'PUT') {
         return res.send();
     }
 
     const stat = fs.statSync(filePath);
     const fileSize = stat.size;
 
- 
+
 
     res.writeHead(200, {
         'Content-Type': 'audio/wave',
@@ -82,6 +82,11 @@ const handleTTS = async (req: Request, res) => {
         res.status(500).send('Error streaming the file');
     });
 
+    if (env.NO_AUDIO_CACHE) {
+        res.on('finish', () => {
+            fs.unlinkSync(filePath)
+        })
+    }
 };
 app.all('/api/tts', handleTTS);
 app.all('/api/tts.wav', handleTTS);

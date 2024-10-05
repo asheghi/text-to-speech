@@ -12,6 +12,8 @@ export const envSchema = z.object({
     MODELS_DIR: z.string().default('data/models'),
     AUDIO_DIR: z.string().default('data/audio'),
     VITE_APP_TITLE: z.string().default('Text to speech'),
+    /** skip storing audio files into cache */
+    NO_AUDIO_CACHE: z.coerce.boolean().default(false),
 });
 
 const validatedEnv = envSchema.parse(process.env);
