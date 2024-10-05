@@ -4,6 +4,7 @@ import { PageNotFound } from './pages/not-found/PageNotFound';
 import { ErrorPage } from './pages/error/ErrorPage';
 import { IndexPage } from './pages/index/IndexPage';
 import ReaderPage from './pages/reader/ReaderPage';
+import StatusPage from './pages/status/StatusPage';
 
 export const router = createBrowserRouter([
   {
@@ -19,6 +20,10 @@ export const router = createBrowserRouter([
         path: 'reader',
         element: <ReaderPage />,
       },
+      {
+        path: 'status',
+        element: <StatusPage />
+      }
     ]
   },
   {

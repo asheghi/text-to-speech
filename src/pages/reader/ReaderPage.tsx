@@ -50,7 +50,7 @@ const ReaderPage = (): JSX.Element => {
 
 
     const [autoPlay, setAutoPlay] = useState(() => {
-        return !!localStorage.getItem('autoPlay') ?? false;
+        return !!localStorage.getItem('autoPlay');
     });
 
     const [delay, setDelay] = useState(() => {
