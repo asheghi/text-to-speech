@@ -19,12 +19,14 @@ Pattern: [Category] [priority] Todo
   - Character limit: daily limit of 10,000 characters. Show remaining characters.
   - Request limit: 20 requests per minute. Implement a system to track and enforce this limit.
 
+- [ ] Add Api Documentaions
+
 ### Medium Priority
 
-- [ ] Frontend: add translation support for reader page 
+- [ ] Frontend: add translation support for reader page
 
 ### Low Priority
 
 - [ ] Design: add dark theme switch
 - [ ] Design: update generate UI
-- [ ] Frontend: edit text in Reader page 
+- [ ] Frontend: edit text in Reader page
