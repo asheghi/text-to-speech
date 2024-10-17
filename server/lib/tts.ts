@@ -11,7 +11,7 @@ import os from 'node:os'
 const ThreadCount = env.THREAD_COUNT ?? (os.cpus()).length;
 
 async function createTTS(modelName?: string) {
-    if(!modelName){
+    if (!modelName) {
         throw new Error('create TTS is called without model name');
     }
     const baseDir = join(env.MODELS_DIR, modelName);
@@ -46,17 +46,21 @@ async function createTTS(modelName?: string) {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const vits: any = { model: resolve(onnxPath) };
-    vits.tokens = tokensPath ? resolve(tokensPath) : undefined;
+    if (tokensPath) vits.tokens = resolve(tokensPath);
     if (dataPath) vits.dataDir = dataPath;
     if (dictDir) vits.dictDir = dataPath;
+    // extra
+    // vits.noiseScale = -3;
+    // vits.noiseScaleW = 1;
+    // vits.lengthScale = 0.75;
 
     const tts = new sherpa_onnx.OfflineTts({
         model: {
             vits: vits,
             debug: true,
             numThreads: ThreadCount,
+            // possible values: 'cpu', 'cuda', 'coreml', 'xnnpack', 'nnapi', 'trt', 'directml'
             provider: 'cpu',
-
         },
         maxNumSentences: 0,
         ruleFsts: '', // could be added the same way filter and joing .fst files 
@@ -84,9 +88,9 @@ async function getTTS(modelName: string) {
 }
 
 
-export async function generateSentence(modelName: string, text: string, lengthScale?: number) {
-    console.log("[TTS] generate sentence",{text,modelName});
-    const hash = objectHash({ modelName, text, lengthScale });
+export async function generateSentence(modelName: string, text: string, speed: number) {
+    console.log("[TTS] generate sentence", { text, modelName });
+    const hash = objectHash({ modelName, text, speed });
     const filename = hash + '.wav';
     const filePath = join(env.AUDIO_DIR, filename);
 
@@ -97,16 +101,15 @@ export async function generateSentence(modelName: string, text: string, lengthSc
 
     const tts = await getTTS(modelName);
 
-    generateSpeech(tts, text, filePath);
+    generateSpeech(tts, text, filePath, speed);
 
     return filePath;
 }
 
-function generateSpeech(tts: any, text: string, filePath: string) {
+function generateSpeech(tts: any, text: string, filePath: string, speed: number) {
     const before = Date.now();
-    console.log('[TTS] generate speech');
     const speakerId = 0;
-    const speed = 0.75;
+    console.log('[TTS] generate speech', { speed, speakerId }, text.substring(0, 50));
     const audio = tts.generate({
         text: text,
         sid: speakerId,

@@ -9,7 +9,7 @@ Pattern: [Category] [priority] Todo
 ### High Priority
 
 - [ ] Backend: storage management
-  - Check remaining storage space.
+  - [x] Check remaining storage space.
   - Develop a strategy for removing old data.
   - Consider using S3 storage for audio files.
 

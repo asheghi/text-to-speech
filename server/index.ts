@@ -27,24 +27,25 @@ app.use(
 );
 
 const handleTTS = async (req: Request, res) => {
-    const { text, model, } = req.query;
-    // log request
+    const { text, model, speed } = req.query;
     console.log(`Received request for TTS with model ${model} and text "${text}"`);
 
-    // validate inputs
     if (!text || !model) {
-        res.status(400).send('Missing required parameters.');
-        return;
+        return res.status(400).send('Missing required parameters.');
     }
-    // validate length and type 
+
     if (typeof text !== 'string' || typeof model !== 'string') {
-        res.status(400).send('Invalid parameters.');
-        return;
+        return res.status(400).send('Invalid parameters.');
+    }
+
+    const parsedSpeed = parseFloat(speed as string);
+    if (speed && isNaN(parsedSpeed)) {
+        return res.status(400).send("invalid speed parameter.")
     }
 
     let filePath;
     try {
-        filePath = await generateSentence(model as string, text as string);
+        filePath = await generateSentence(model as string, text as string, speed ? parsedSpeed : 1);
     } catch (error) {
         console.error(error);
         console.error("failed to generate file");
