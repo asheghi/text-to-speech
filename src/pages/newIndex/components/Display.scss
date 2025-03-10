@@ -1,9 +1,9 @@
 .display-wrapper{
-    @apply border rounded-xl shadow-xl border-gray-300 px-4 h-full flex-grow bg-white;
+    
 }
 
 .display{
-    @apply flex flex-col gap-1  overflow-x-hidden overflow-y-auto scroll-smooth py-4;
+
 }
 
 
@@ -20,6 +20,6 @@
     }
 
     &.active{
-        @apply bg-yellow-200 ;
+        @apply bg-amber-200 ;
     }
 }

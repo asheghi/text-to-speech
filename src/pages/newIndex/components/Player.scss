@@ -1,9 +1,25 @@
 .player {
-    @apply bg-white p-2 rounded-lg;
+    @apply bg-white px-2 pb-0 pt-0 shadow-2xl rounded-lg fixed bottom-0 inset-x-0 container mx-auto;
+
+    &:hover{
+        @apply pt-5;
+    }
+
+    .player-buttons{
+        @apply transition-all;
+    }
+
+    & .player-buttons{
+        @apply opacity-0 h-0 translate-y-8;
+    }
+
+    &:hover .player-buttons{
+        @apply flex opacity-100 h-auto translate-y-0;
+    }
 }
 
 .slider {
-    @apply w-full h-2 my-4 bg-gray-200 rounded-lg appearance-none cursor-pointer;
+    @apply w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer;
     @apply dark:bg-gray-300 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-6;
     @apply [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:bg-gray-400;
     @apply [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:transition-all;

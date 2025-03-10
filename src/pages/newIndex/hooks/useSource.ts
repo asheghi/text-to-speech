@@ -1,39 +1,24 @@
-import { useState } from 'react';
-import {  useSearchParams } from 'react-router-dom';
+import { useLocalStorageState } from '@/lib/useLocalStorageState';
 
 export function useSource() {
-    const [searchParams, setSearchParams] = useSearchParams();
-    const [text,setText] = useState(localStorage.getItem('text') ?? "Type something here")
-    const [model,setModel] = useState(searchParams.get("model") ?? undefined);
-    const [language,setLanguage] = useState(searchParams.get("language") ?? undefined)
-    const speedParam = searchParams.get("speed") ?? "1";
-    const [speed,setSpeed] = useState(parseFloat(speedParam));
-
-
-
-    const updateParam = (key: string, value: unknown) => {
-        searchParams.set(key, String(value));
-        setSearchParams(searchParams);
-    }
+    const [text, setText] = useLocalStorageState('text', 'You can type here...');
+    const [model, setModel] = useLocalStorageState<string>('model','');
+    const [language, setLanguage] = useLocalStorageState<string>('language', '')
+    const [speed, setSpeed] = useLocalStorageState('speed', 1);
 
     const changeSpeed = (arg: number) => {
-        console.log("change speed called",arg)
-        updateParam('speed',arg);
         setSpeed(arg);
     }
 
     const changeModel = (arg: string) => {
-        console.log("change model called",arg)
-        updateParam('model',arg);
+        console.log("change model called", arg)
         setModel(arg)
     }
     const changeLanguage = (arg: string) => {
-        console.log("change langauge called",arg)
-        updateParam('language',arg)
+        console.log("change langauge called", arg)
         setLanguage(arg);
     }
     const changeText = (arg: string) => {
-        localStorage.setItem('text',arg);
         setText(arg);
     }
 

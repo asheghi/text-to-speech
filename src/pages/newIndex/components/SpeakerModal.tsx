@@ -2,9 +2,10 @@ import { Button, Divider, FormControl, FormLabel, Modal, ModalClose, ModalDialog
 import IconSpeaker from '@mui/icons-material/RecordVoiceOverOutlined'
 import IconLanguage from '@mui/icons-material/LanguageOutlined'
 import { trpc } from "@/api";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 import { languageList } from "@/pages/index/components/consts/languageList";
 import Dropdown from "./Dropdown";
+import { useLocalStorageState } from "@/lib/useLocalStorageState";
 
 interface IProps {
     onModelSelect: (model: string) => void;
@@ -19,9 +20,9 @@ interface IProps {
 export const SpeakerModal = (props: IProps) => {
     const modelsQuery = trpc.tts.getModelsList.useQuery();
 
-    const [selectedLanguage, setSelectedLanguage] = useState(props.language);
-    const [selectedModel, setSelectedModel] = useState(props.model);
-    const [selectedSpeed, setSelectedSpeed] = useState(props.speed)
+    const [selectedLanguage, setSelectedLanguage] = useLocalStorageState<string>('language', 'en')
+    const [selectedModel, setSelectedModel] = useLocalStorageState<string>('model', '')
+    const [selectedSpeed, setSelectedSpeed] = useLocalStorageState('speed', 1)
 
     const getModelsForLanguage = useCallback((lanaugeCode: string | undefined | null) => (modelsQuery.data ?? []).filter(model => {
         return model.modelName.toLowerCase().includes(`-${lanaugeCode}-`) || model.modelName.toLowerCase().includes(`-${lanaugeCode}_`);

@@ -43,7 +43,7 @@ async function loadSentences(urls: string[]): Promise<void> {
 
 const ReaderPage = (): JSX.Element => {
     const [showSpeakerModal, setShowSpeakerModal] = useState(false);
-    const { changeSpeed, model, speed, text, language, changeLanguage, changeModel, changeText} = useSource()
+    const { changeSpeed, model, speed, text, language, changeLanguage, changeModel, changeText } = useSource()
 
     const sentences = splitToSentences(text);
 
@@ -51,6 +51,8 @@ const ReaderPage = (): JSX.Element => {
     console.log("text:", text);
     console.log("speed:", speed);
     console.log("sentences:", sentences);
+    console.log("language:", language);
+    console.log("model:", model);
 
     const [isLoop, setIsLoop] = useState(false);
 
@@ -68,10 +70,10 @@ const ReaderPage = (): JSX.Element => {
         return 0;
     });
 
-    const links = useMemo( () => sentences.map(it => {
+    const links = useMemo(() => sentences.map(it => {
         const url = getTtsLink(it, model ?? "", speed);
         return url;
-    }),[model, sentences, speed]);
+    }), [model, sentences, speed]);
 
     const {
         isPlaying,
@@ -110,7 +112,7 @@ const ReaderPage = (): JSX.Element => {
 
 
     useEffect(() => {
-        if(!model){
+        if (!model.length) {
             setShowSpeakerModal(true);
         }
     }, [])
@@ -142,16 +144,16 @@ const ReaderPage = (): JSX.Element => {
         setShowSpeakerModal(true);
     }
 
-    console.log("check", {model,speed,text});
+    console.log("check", { model, speed, text });
 
     return (
         <Page headerTitle="Babble Bot" headerEnd={
-                <IconButton onClick={handleShowSpeakerModal}>
-                    <IconSpeaker />
-                </IconButton>
-            }
+            <IconButton onClick={handleShowSpeakerModal}>
+                <IconSpeaker />
+            </IconButton>
+        }
         >
-            <main className="container h-full flex-grow flex flex-col gap-2">
+            <main className="h-full flex-grow flex flex-col gap-2">
                 <Display
                     onSelect={handleSelect}
                     sentences={sentences}
@@ -159,7 +161,9 @@ const ReaderPage = (): JSX.Element => {
                     isPending={isPending}
                     text={text}
                     onTextChange={changeText}
-                />
+                >
+
+                </Display>
                 <Player
                     isPending={isPending}
                     onTogglePlay={isPlaying ? pause : play}

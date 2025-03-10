@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+*{
+    font-family: Inter, 'sans-serif';
+}
+
 body{
     height: 100dvh;
     overflow-y: auto;
@@ -9,7 +13,7 @@ body{
 }
 
 .page{
-    @apply bg-gray-100;
+    @apply bg-white;
 }
 
 

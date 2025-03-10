@@ -51,8 +51,7 @@ export const Player = (props: IPlayerProps) => {
     }
 
     return <div className={"player " + props.className + ' bg-white '}>
-        <Slider value={props.currentIndex} max={props.length - 1} min={0} onChange={handleSeek} />
-        <div className="flex ">
+        <div className="flex player-buttons">
             <div className='flex-1 flex gap-2 items-center'>
                 <Tooltip title="Auto Play">
                     <IconButton onClick={handleAutoPlayChange} aria-label='Auto Play'>
@@ -106,5 +105,6 @@ export const Player = (props: IPlayerProps) => {
             </div>
 
         </div>
+        <Slider value={props.currentIndex} max={props.length - 1} min={0} onChange={handleSeek} />
     </div>
 }

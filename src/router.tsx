@@ -15,11 +15,11 @@ export const router = createBrowserRouter([
     errorElement: <ErrorPage />,
     children: [
       {
-        path: '',
+        path: 'new',
         element: <NewIndex />,
       },
       {
-        path: 'old',
+        path: '',
         element: <IndexPage />,
       },
       {

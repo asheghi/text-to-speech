@@ -4,7 +4,7 @@ import { SentenceType } from "../types/SentenceType"
 import "./Display.scss"
 import SaveIcon from '@mui/icons-material/Save';
 import EditOffIcon from '@mui/icons-material/EditOff';
-import { IconButton } from "@mui/joy";
+import { Button, IconButton } from "@mui/joy";
 
 export const Display = (props: {
     isPending: boolean;
@@ -51,27 +51,25 @@ export const Display = (props: {
         setText(textContent ?? "")
     }
 
-    return <div className={"display-wrapper relative " + props.className}>
-        <div ref={scrollContainer} className="display" style={{
-            height: 'calc(100dvh - 170px)'
-        }}>
-            <div className="absolute top-4 right-4">
-                {!isEditable && <>
-                    <IconButton onClick={handleEdit}>
-                        <EditIcon />
-                    </IconButton>
-                </>}
-                {isEditable && <>
-                    <IconButton onClick={handleSave} disabled={!text.length} className="bg-white">
-                        <SaveIcon />
-                    </IconButton>
-                    <IconButton onClick={handleReset}>
-                        <EditOffIcon />
-                    </IconButton>
-                </>}
-            </div>
-            {isEditable && <div className="md:text-2xl text-lg -mt-1"  contentEditable={isEditable} onInput={handleTextChange} 
-            style={{ whiteSpace: "pre-wrap",lineHeight: '2.8rem', }}>
+
+    return <div className={"display-wrapper relative mb-8 " + props.className}>
+        <div ref={scrollContainer} className="display flex flex-col container mx-auto " style={{
+            height: 'calc(100vh - 100px)',
+
+        }} >
+            {!isEditable && <div className="pb-4 flex justify-end"><Button onClick={handleEdit} variant="outlined" color="neutral" className="self-end">Edit Text<EditIcon /> </Button></div>}
+            {isEditable && <div className="flex gap-4 justify-end pb-4" onClick={handleSave}>
+                <Button variant="solid" >
+                    Save Changes
+                    <SaveIcon />
+                </Button>
+                <Button className="" variant="plain" onClick={handleReset} >
+                    Cancel
+                    <EditOffIcon />
+                </Button>
+            </div>}
+            {isEditable && <div className="md:text-2xl text-lg -mt-1 " contentEditable={isEditable} onInput={handleTextChange}
+                style={{ whiteSpace: "pre-wrap", lineHeight: '2rem', }}>
                 {props.text}
             </div>}
             {!isEditable && <p>
@@ -93,5 +91,6 @@ export const Display = (props: {
             </p>
             }
         </div>
+        {props.children}
     </div>
 }
