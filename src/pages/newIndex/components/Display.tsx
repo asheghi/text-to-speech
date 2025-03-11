@@ -4,7 +4,7 @@ import { SentenceType } from "../types/SentenceType"
 import "./Display.scss"
 import SaveIcon from '@mui/icons-material/Save';
 import EditOffIcon from '@mui/icons-material/EditOff';
-import { Button, IconButton } from "@mui/joy";
+import { Button } from "@mui/joy";
 
 export const Display = (props: {
     isPending: boolean;
@@ -91,6 +91,5 @@ export const Display = (props: {
             </p>
             }
         </div>
-        {props.children}
     </div>
 }
