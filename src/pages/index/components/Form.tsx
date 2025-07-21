@@ -17,6 +17,7 @@ import { Button, FormControl, FormHelperText, FormLabel, Textarea } from "@mui/j
 interface IFormProps {
     onFormChange: (params: FormType) => void;
     isPending: boolean;
+    isSharePending: boolean;
     onSubmit: () => void;
     onRead?: () => void;
     player: React.ReactNode;
@@ -155,7 +156,7 @@ export const Form = (props: IFormProps): JSX.Element => {
         <div className="flex gap-2 self-end">
             {props.onRead && (
                 <Button
-                    disabled={props.isPending || !selectedModel?.value || !text?.trim()}
+                    disabled={props.isSharePending}
                     onClick={props.onRead}
                     variant="outlined"
                     className="gap-2"

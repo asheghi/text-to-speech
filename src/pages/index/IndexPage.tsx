@@ -32,7 +32,12 @@ export const IndexPage = (): JSX.Element => {
     };
 
     const handleRead = async function (): Promise<void> {
-        if (!formState?.text?.trim() || !formState?.language || !formState?.model) {
+        if (!formState?.text?.trim()) {
+            navigate('/reader');
+            return;
+        }
+        
+        if (!formState?.language || !formState?.model) {
             return;
         }
 
@@ -66,6 +71,7 @@ export const IndexPage = (): JSX.Element => {
             <Form
                 player={state === RequestState.SUCCESS && <Player url={url} />}
                 isPending={state === RequestState.PENDING}
+                isSharePending={shareContentMutation.isPending}
                 onFormChange={handleStateChange}
                 onSubmit={handleFormSubmit}
                 onRead={handleRead} />
