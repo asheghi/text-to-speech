@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useEffect, useMemo, useState, useCallback } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { Display } from "./components/Display";
 import { Player } from "./components/Player";
 import { SentenceType } from "./types/SentenceType";
@@ -54,10 +54,20 @@ async function loadSentences(urls: string[]): Promise<void> {
 
 const ReaderPage = (): JSX.Element => {
     const { shareId } = useParams();
+    const navigate = useNavigate();
     const [showSpeakerModal, setShowSpeakerModal] = useState(false);
     const [shareModalOpen, setShareModalOpen] = useState(false);
     const [shareContentId, setShareContentId] = useState('');
+
     const { changeSpeed, model, speed, text, language, changeLanguage, changeModel, changeText } = useSource();
+
+    // Handle text changes when in shared mode
+    const handleTextChange = useCallback((newText: string) => {
+        changeText(newText);
+        if (shareId) {
+            navigate('/reader', { replace: true });
+        }
+    }, [shareId, navigate, changeText]);
 
     // Share content mutation
     const shareContentMutation = trpc.tts.shareContent.useMutation({
@@ -161,7 +171,7 @@ const ReaderPage = (): JSX.Element => {
 
             }
         }
-    }, [])
+    }, [stop])
 
 
     useEffect(() => {
@@ -283,7 +293,7 @@ const ReaderPage = (): JSX.Element => {
                     activeSentenceId={currentTrackIndex}
                     isPending={isPending}
                     text={text}
-                    onTextChange={changeText}
+                    onTextChange={handleTextChange}
                     language={language}
                     model={model}
                     speed={speed}
