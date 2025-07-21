@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { useEffect, useMemo, useState } from "react";
+import { useParams } from "react-router-dom";
 import { Display } from "./components/Display";
 import { Player } from "./components/Player";
 import { SentenceType } from "./types/SentenceType";
@@ -10,8 +11,9 @@ import IconSpeaker from '@mui/icons-material/RecordVoiceOver'
 
 import { Page } from "@/components/Page";
 import { useSource } from "./hooks/useSource";
-import { IconButton } from "@mui/joy";
+import { IconButton, Typography, CircularProgress, Alert } from "@mui/joy";
 import { SpeakerModal } from "./components/SpeakerModal";
+import { trpc } from "../../api";
 
 function splitToSentences(text: string): SentenceType[] {
     return text.split('\n')
@@ -50,8 +52,25 @@ async function loadSentences(urls: string[]): Promise<void> {
 }
 
 const ReaderPage = (): JSX.Element => {
+    const { shareId } = useParams();
     const [showSpeakerModal, setShowSpeakerModal] = useState(false);
     const { changeSpeed, model, speed, text, language, changeLanguage, changeModel, changeText } = useSource()
+    
+    // Fetch shared content if shareId is present
+    const { data: sharedContent, isLoading: isLoadingSharedContent, error: sharedContentError } = trpc.tts.getSharedContent.useQuery(
+        { shareId: shareId! },
+        { 
+            enabled: !!shareId,
+            retry: false 
+        }
+    );
+    
+    // Update text when shared content is loaded
+    useEffect(() => {
+        if (sharedContent?.content && shareId) {
+            changeText(sharedContent.content);
+        }
+    }, [sharedContent, shareId, changeText]);
 
     const sentences = splitToSentences(text);
 
@@ -154,6 +173,46 @@ const ReaderPage = (): JSX.Element => {
 
     console.log("check", { model, speed, text });
 
+    // Show loading state for shared content
+    if (shareId && isLoadingSharedContent) {
+        return (
+            <Page headerTitle="Babble Bot" headerEnd={
+                <IconButton onClick={handleShowSpeakerModal}>
+                    <IconSpeaker />
+                </IconButton>
+            }>
+                <div className="h-full flex items-center justify-center">
+                    <div className="text-center">
+                        <CircularProgress size="lg" />
+                        <Typography level="body-lg" className="mt-4">
+                            Loading shared content...
+                        </Typography>
+                    </div>
+                </div>
+            </Page>
+        );
+    }
+
+    // Show error state for shared content
+    if (shareId && sharedContentError) {
+        return (
+            <Page headerTitle="Babble Bot" headerEnd={
+                <IconButton onClick={handleShowSpeakerModal}>
+                    <IconSpeaker />
+                </IconButton>
+            }>
+                <div className="h-full flex items-center justify-center p-4">
+                    <Alert color="danger" variant="soft" className="max-w-md">
+                        <Typography level="title-md">Content Not Found</Typography>
+                        <Typography level="body-md">
+                            The shared content you're looking for doesn't exist or has been removed.
+                        </Typography>
+                    </Alert>
+                </div>
+            </Page>
+        );
+    }
+
     return (
         <Page headerTitle="Babble Bot" headerEnd={
             <IconButton onClick={handleShowSpeakerModal}>
@@ -169,6 +228,7 @@ const ReaderPage = (): JSX.Element => {
                     isPending={isPending}
                     text={text}
                     onTextChange={changeText}
+                    isReadOnly={!!shareId}
                 >
 
                 </Display>

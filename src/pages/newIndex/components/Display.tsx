@@ -1,10 +1,13 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
 import EditIcon from '@mui/icons-material/Edit';
+import ShareIcon from '@mui/icons-material/Share';
 import { SentenceType } from "../types/SentenceType"
 import "./Display.scss"
 import SaveIcon from '@mui/icons-material/Save';
 import EditOffIcon from '@mui/icons-material/EditOff';
 import { Button } from "@mui/joy";
+import { ShareModal } from "../../../components/ShareModal";
+import { trpc } from "../../../api";
 
 export const Display = (props: {
     isPending: boolean;
@@ -14,10 +17,24 @@ export const Display = (props: {
     className?: string;
     onTextChange: (text: string) => void;
     text: string;
+    isReadOnly?: boolean;
 }) => {
     const scrollContainer = useRef<HTMLDivElement>(null);
     const [isEditable, setIsEditable] = useState(false);
-    const [text, setText] = useState(props.text)
+    const [text, setText] = useState(props.text);
+    const [shareModalOpen, setShareModalOpen] = useState(false);
+    const [shareId, setShareId] = useState('');
+    
+    const shareContentMutation = trpc.tts.shareContent.useMutation({
+        onSuccess: (data) => {
+            setShareId(data.shareId);
+        },
+        onError: (error) => {
+            console.error('Failed to share content:', error);
+            alert('Failed to create share link. Please try again.');
+            setShareModalOpen(false);
+        }
+    });
 
     useEffect(() => {
         const activeElement = document.getElementById('sentence-' + props.activeSentenceId)
@@ -51,6 +68,20 @@ export const Display = (props: {
         setText(textContent ?? "")
     }
 
+ 
+
+    function handleShare(): void {
+        setShareModalOpen(true);
+        shareContentMutation.mutate({
+            content: props.text,
+            title: 'Shared Text to Speech'
+        });
+    }
+
+    const handleCloseShareModal = () => {
+        setShareModalOpen(false);
+        setShareId('');
+    };
 
     return <div className={"display-wrapper display flex flex-col container mx-auto relative mb-8 " + props.className}
         style={{
@@ -62,7 +93,14 @@ export const Display = (props: {
             className=" overflow-auto"
         >
 
-            {!isEditable && <div className="pb-4 flex justify-end"><Button onClick={handleEdit} variant="outlined" color="neutral" className="self-end">Edit Text<EditIcon /> </Button></div>}
+            {!isEditable && <div className="pb-4 flex justify-end gap-2">
+                <Button onClick={handleShare} variant="outlined" color="neutral">
+                    Share <ShareIcon />
+                </Button>
+                <Button onClick={handleEdit} variant="outlined" color="neutral">
+                    Edit Text <EditIcon />
+                </Button>
+            </div>}
             {isEditable && <div className="flex gap-4 justify-end pb-4" onClick={handleSave}>
                 <Button variant="solid" >
                     Save Changes
@@ -99,5 +137,12 @@ export const Display = (props: {
 
             </div>
         </div>
+        
+        <ShareModal 
+            open={shareModalOpen} 
+            onClose={handleCloseShareModal}
+            shareId={shareId}
+            isLoading={shareContentMutation.isPending}
+        />
     </div >
 }

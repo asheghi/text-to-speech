@@ -19,6 +19,10 @@ export const router = createBrowserRouter([
         element: <NewIndex />,
       },
       {
+        path: 'new/:shareId',
+        element: <NewIndex />,
+      },
+      {
         path: '',
         element: <IndexPage />,
       },
