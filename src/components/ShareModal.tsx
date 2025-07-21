@@ -15,7 +15,7 @@ export const ShareModal = ({ open, onClose, shareId, isLoading }: ShareModalProp
     const [copied, setCopied] = useState(false);
     
     // Construct the share URL on the frontend
-    const shareUrl = shareId ? `${window.location.origin}/new/${shareId}` : '';
+    const shareUrl = shareId ? `${window.location.origin}/reader/${shareId}` : '';
 
     const handleCopy = async () => {
         try {

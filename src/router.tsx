@@ -5,7 +5,6 @@ import { ErrorPage } from './pages/error/ErrorPage';
 import { IndexPage } from './pages/index/IndexPage';
 // todo lazy loading pages
 import ReaderPage from './pages/reader/ReaderPage';
-import NewIndex from './pages/newIndex/ReaderPage';
 import StatusPage from './pages/status/StatusPage';
 
 export const router = createBrowserRouter([
@@ -15,20 +14,16 @@ export const router = createBrowserRouter([
     errorElement: <ErrorPage />,
     children: [
       {
-        path: 'new',
-        element: <NewIndex />,
+        path: 'reader',
+        element: <ReaderPage />,
       },
       {
-        path: 'new/:shareId',
-        element: <NewIndex />,
+        path: 'reader/:shareId',
+        element: <ReaderPage />,
       },
       {
         path: '',
         element: <IndexPage />,
-      },
-      {
-        path: 'reader',
-        element: <ReaderPage />,
       },
       {
         path: 'status',

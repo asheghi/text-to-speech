@@ -8,6 +8,7 @@ import LoadingIcon from '@mui/icons-material/RecordVoiceOver';
 import IconSpeaker from '@mui/icons-material/RecordVoiceOverOutlined'
 import IconLanguage from '@mui/icons-material/LanguageOutlined'
 import IconText from '@mui/icons-material/ArticleOutlined'
+import IconRead from '@mui/icons-material/MenuBookOutlined'
 
 import "./Form.scss"
 import { FormType } from "../FormType";
@@ -17,6 +18,7 @@ interface IFormProps {
     onFormChange: (params: FormType) => void;
     isPending: boolean;
     onSubmit: () => void;
+    onRead?: () => void;
     player: React.ReactNode;
 }
 
@@ -150,15 +152,28 @@ export const Form = (props: IFormProps): JSX.Element => {
             <FormHelperText>text can be very long</FormHelperText>
         </FormControl>
         {props.player}
-        <Button
-            disabled={props.isPending}
-            loading={props.isPending}
-            type="submit"
-            className="gap-2 self-end"
-        >
-            {props.isPending ? <LoadingIcon /> : <GenerateIcon />}
-            {props.isPending ? 'Generating' : 'Synthesize'}
-        </Button>
+        <div className="flex gap-2 self-end">
+            {props.onRead && (
+                <Button
+                    disabled={props.isPending || !selectedModel?.value || !text?.trim()}
+                    onClick={props.onRead}
+                    variant="outlined"
+                    className="gap-2"
+                >
+                    <IconRead />
+                    Read
+                </Button>
+            )}
+            <Button
+                disabled={props.isPending}
+                loading={props.isPending}
+                type="submit"
+                className="gap-2"
+            >
+                {props.isPending ? <LoadingIcon /> : <GenerateIcon />}
+                {props.isPending ? 'Generating' : 'Synthesize'}
+            </Button>
+        </div>
 
     </form>
 }

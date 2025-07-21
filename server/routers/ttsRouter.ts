@@ -18,7 +18,10 @@ export const ttsRouter = t.router({
     shareContent: t.procedure
         .input(z.object({
             content: z.string().min(1),
-            title: z.string().optional()
+            title: z.string().optional(),
+            language: z.string().optional(),
+            model: z.string().optional(),
+            speed: z.number().optional()
         }))
         .mutation(async ({ input }) => {
             const shareId = nanoid(10); // Generate a short unique ID
@@ -33,6 +36,9 @@ export const ttsRouter = t.router({
             const contentData = {
                 content: input.content,
                 title: input.title || 'Shared Text',
+                language: input.language,
+                model: input.model,
+                speed: input.speed,
                 createdAt: new Date().toISOString()
             };
             
@@ -62,6 +68,9 @@ export const ttsRouter = t.router({
             return {
                 content: contentData.content,
                 title: contentData.title,
+                language: contentData.language,
+                model: contentData.model,
+                speed: contentData.speed,
                 createdAt: contentData.createdAt
             };
         })
