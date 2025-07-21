@@ -1,21 +1,5 @@
 .player {
-    @apply bg-white px-2 pb-0 pt-0 shadow-2xl rounded-lg fixed bottom-0 inset-x-0 container mx-auto;
-
-    &:hover{
-        @apply pt-5;
-    }
-
-    .player-buttons{
-        @apply transition-all;
-    }
-
-    & .player-buttons{
-        @apply opacity-0 h-0 translate-y-8;
-    }
-
-    &:hover .player-buttons{
-        @apply flex opacity-100 h-auto translate-y-0;
-    }
+    @apply bg-white px-2 pb-0 pt-5 shadow-2xl rounded-lg fixed bottom-0 inset-x-0 container mx-auto;
 }
 
 .slider {

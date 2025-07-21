@@ -76,15 +76,26 @@ const useAudioPlayer = (args: { autoPlay: boolean, delay: number | string, sente
         }
       }
     });
-  }, [currentAudioIndex])
+  }, [currentAudioIndex]);
+
+
+  const handlePause = () => {
+    clearDelayTimeout();
+    player.pause();
+  };
+
+  const handleStop = () => {
+    clearDelayTimeout();
+    player.stop();
+  };
 
   return {
     setCurrentTrackIndex: setCurrentIndex,
     isPlaying: player.playing,
     play: player.play,
     currentTrackIndex: currentAudioIndex,
-    pause: player.pause,
-    stop: player.stop,
+    pause: handlePause,
+    stop: handleStop,
     playNext: handlePlayNext,
     playPrevious: handlePlayPrevious,
     isPending: player.isLoading,

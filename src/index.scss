@@ -13,7 +13,7 @@ body{
 }
 
 .page{
-    @apply bg-white;
+    @apply bg-white max-h-screen overflow-hidden;
 }
 
 

@@ -52,11 +52,16 @@ export const Display = (props: {
     }
 
 
-    return <div className={"display-wrapper relative mb-8 " + props.className}>
-        <div ref={scrollContainer} className="display flex flex-col container mx-auto " style={{
+    return <div className={"display-wrapper display flex flex-col container mx-auto relative mb-8 " + props.className}
+        style={{
             height: 'calc(100vh - 100px)',
-
+            maxHeight: 'calc(100vh - 100px)',
         }} >
+        <div
+            ref={scrollContainer}
+            className=" overflow-auto"
+        >
+
             {!isEditable && <div className="pb-4 flex justify-end"><Button onClick={handleEdit} variant="outlined" color="neutral" className="self-end">Edit Text<EditIcon /> </Button></div>}
             {isEditable && <div className="flex gap-4 justify-end pb-4" onClick={handleSave}>
                 <Button variant="solid" >
@@ -90,6 +95,9 @@ export const Display = (props: {
                 })}
             </p>
             }
+            <div className="pt-[150px]">
+
+            </div>
         </div>
-    </div>
+    </div >
 }

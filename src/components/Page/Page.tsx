@@ -15,7 +15,7 @@ export const Page = (props: PageProps) => {
             backLink={props.backLink}
             children={props.headerEnd}
         />
-        <div className="page-content flex flex-col overflow-auto h-auto flex-grow pt-4" style={{height: "calc(100dvh - 50px)"}}>
+        <div className="page-content flex flex-col overflow-y-auto overflow-x-hidden h-auto flex-grow pt-4" style={{height: "calc(100dvh - 50px)"}}>
             {props.children}
         </div>
     </div>;

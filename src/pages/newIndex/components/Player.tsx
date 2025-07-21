@@ -3,8 +3,7 @@ import PlayIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import NextIcon from '@mui/icons-material/KeyboardDoubleArrowRight'
 import PrevIcon from '@mui/icons-material/KeyboardDoubleArrowLeft'
-import PendingIcon from '@mui/icons-material/DownloadingOutlined'
-import WaitingIcon from '@mui/icons-material/TimerOutlined'
+import WaitingIcon from '@mui/icons-material/PlayDisabled'
 import { Badge, Dropdown, IconButton, Menu, MenuButton, MenuItem, Slider, Tooltip } from '@mui/joy';
 import AutoPlayIcon from '@mui/icons-material/SlowMotionVideo';
 import RepeatIcon from '@mui/icons-material/Repeat';
@@ -50,7 +49,7 @@ export const Player = (props: IPlayerProps) => {
         props.onDelayChange(arg0)
     }
 
-    return <div className={"player " + props.className + ' bg-white '}>
+    return <div className={"player  " + props.className + ' bg-white '}>
         <div className="flex player-buttons">
             <div className='flex-1 flex gap-2 items-center'>
                 <Tooltip title="Auto Play">
@@ -71,10 +70,10 @@ export const Player = (props: IPlayerProps) => {
                         <PrevIcon />
                     </IconButton>
                 </Tooltip>
-                <Tooltip title={props.isWaiting ? "Waiting..." : props.isPending ? "Loading..." : props.isPlaying ? "Pause" : "Play"}>
+                <Tooltip title={props.isWaiting ? "Pause" : props.isPending ? "Loading..." : props.isPlaying ? "Pause" : "Play"}>
 
                     <IconButton onClick={props.onTogglePlay}>
-                        {props.isWaiting ? <WaitingIcon /> : props.isPending ? <PendingIcon /> : props.isPlaying ? <PauseIcon /> : <PlayIcon />}
+                        {props.isWaiting ? <WaitingIcon /> : props.isPending ? <WaitingIcon /> : props.isPlaying ? <PauseIcon /> : <PlayIcon />}
                     </IconButton>
                 </Tooltip>
                 <Tooltip title="Next">

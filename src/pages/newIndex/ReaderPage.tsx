@@ -17,13 +17,21 @@ function splitToSentences(text: string): SentenceType[] {
     return text.split('\n')
         .map(it => it + '\n')
         .flatMap(it => {
+
             return it
-                .replace(/".*"/g, match => match + '|')
-                .replace(/\. /g, '.|')
-                .replace(/:+/g, ':|')
-                .replace(/\?/g, '?|')
-                .replace(/!/g, '!|')
-                .replace(/;/g, ';|')
+                .replace(/"([^"]+)"/g, (match, content) => {
+                    if (content.length > 12) {
+                        return `|"${content}"|`;
+                    }
+                    return match;
+                })
+                .replace(/\. (?=(?:[^"]*"[^"]*")*[^"]*$)/g, '.|')
+                .replace(/\.(?=(?:[^"]*"[^"]*")*[^"]*$)/g, '.|')
+                .replace(/:+(?=(?:[^"]*"[^"]*")*[^"]*$)/g, ':|')
+                .replace(/\?(?=(?:[^"]*"[^"]*")*[^"]*$)/g, '?|')
+                .replace(/!(?=(?:[^"]*"[^"]*")*[^"]*$)/g, '!|')
+                .replace(/;(?=(?:[^"]*"[^"]*")*[^"]*$)/g, ';|')
+                .replace(/" ([A-Z])/g, '"|$1')
                 .split("|")
         })
         .map((it, index, arr) => {
@@ -166,7 +174,7 @@ const ReaderPage = (): JSX.Element => {
                 </Display>
                 <Player
                     isPending={isPending}
-                    onTogglePlay={isPlaying ? pause : play}
+                    onTogglePlay={isWaiting ? stop : isPlaying ? pause : play}
                     onNext={playNext}
                     onPrev={playPrevious}
                     isPlaying={isPlaying}
