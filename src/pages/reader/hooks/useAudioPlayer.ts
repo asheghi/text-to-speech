@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { SentenceType } from '../types/SentenceType';
 import debug from 'debug'
 import { useAudioPlayer as useAudioPlayerReact } from 'react-use-audio-player';
@@ -84,10 +84,10 @@ const useAudioPlayer = (args: { autoPlay: boolean, delay: number | string, sente
     player.pause();
   };
 
-  const handleStop = () => {
+  const handleStop = useCallback(() => {
     clearDelayTimeout();
     player.stop();
-  };
+  }, [player]);
 
   return {
     setCurrentTrackIndex: setCurrentIndex,

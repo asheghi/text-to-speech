@@ -20,7 +20,6 @@ function splitToSentences(text: string): SentenceType[] {
     return text.split('\n')
         .map(it => it + '\n')
         .flatMap(it => {
-
             return it
                 .replace(/"([^"]+)"/g, (match, content) => {
                     if (content.length > 12) {
@@ -106,16 +105,17 @@ const ReaderPage = (): JSX.Element => {
                 changeSpeed(sharedContent.speed);
             }
         }
-    }, [sharedContent, shareId, changeText, changeLanguage, changeModel, changeSpeed, language, model, speed]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [shareId]);
 
     const sentences = splitToSentences(text);
 
 
-    console.log("text:", text);
-    console.log("speed:", speed);
-    console.log("sentences:", sentences);
-    console.log("language:", language);
-    console.log("model:", model);
+    // console.log("text:", text);
+    // console.log("speed:", speed);
+    // console.log("sentences:", sentences);
+    // console.log("language:", language);
+    // console.log("model:", model);
 
     const [isLoop, setIsLoop] = useState(false);
 
@@ -168,10 +168,9 @@ const ReaderPage = (): JSX.Element => {
                 stop();
             } catch (ignored) {
                 console.log(ignored);
-
             }
         }
-    }, [stop])
+    }, [])
 
 
     useEffect(() => {
@@ -237,7 +236,6 @@ const ReaderPage = (): JSX.Element => {
         setShareContentId('');
     };
 
-    console.log("check", { model, speed, text });
 
     // Show loading state for shared content
     if (shareId && isLoadingSharedContent) {
@@ -279,7 +277,7 @@ const ReaderPage = (): JSX.Element => {
         );
     }
 
-    return (
+     return (
         <Page headerTitle="Babble Bot" headerEnd={
             <IconButton onClick={handleShowSpeakerModal}>
                 <IconSpeaker />
