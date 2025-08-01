@@ -21,7 +21,6 @@ function splitToSentences(text: string): SentenceType[] {
         .split('\n')
         .map(it => it + '\n')
         .flatMap(it => {
-            console.log("split text", JSON.stringify(it));
             if(it === '\n' || it === " \n") {
                 return [it];
             }
