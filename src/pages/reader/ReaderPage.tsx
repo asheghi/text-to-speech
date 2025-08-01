@@ -17,9 +17,14 @@ import { ShareModal } from "../../components/ShareModal";
 import { trpc } from "../../api";
 
 function splitToSentences(text: string): SentenceType[] {
-    return text.split('\n')
+    return text
+        .split('\n')
         .map(it => it + '\n')
         .flatMap(it => {
+            console.log("split text", JSON.stringify(it));
+            if(it === '\n' || it === " \n") {
+                return [it];
+            }
             return it
                 .replace(/"([^"]+)"/g, (match, content) => {
                     if (content.length > 12) {
@@ -37,12 +42,21 @@ function splitToSentences(text: string): SentenceType[] {
                 .split("|")
         })
         .map((it, index, arr) => {
-            if (arr[index + 1] === '\n') {
-                return it + '\n';
+            let i = index + 1;
+            let appending = "";
+            while(i < arr.length - 1) {
+                const current = arr[i];
+                if (/[a-zA-Z0-9]/.test(current.trim())){
+                    break;
+                }else{
+                    appending += current;
+                }
+                i++;
             }
-            return it;
+            return it + appending;
         })
-        .filter(it => !!it.trim().length)
+        .filter(it => /[a-zA-Z0-9]/.test(it.trim()))
+
 }
 
 async function loadSentences(urls: string[]): Promise<void> {
@@ -105,11 +119,10 @@ const ReaderPage = (): JSX.Element => {
                 changeSpeed(sharedContent.speed);
             }
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [shareId]);
 
     const sentences = splitToSentences(text);
-
 
     // console.log("text:", text);
     // console.log("speed:", speed);
@@ -277,7 +290,7 @@ const ReaderPage = (): JSX.Element => {
         );
     }
 
-     return (
+    return (
         <Page headerTitle="Babble Bot" headerEnd={
             <IconButton onClick={handleShowSpeakerModal}>
                 <IconSpeaker />

@@ -56,8 +56,6 @@ export const Display = (props: {
         setText(textContent ?? "")
     }
 
- 
-
     function handleShare(): void {
         props.onShare();
     }
