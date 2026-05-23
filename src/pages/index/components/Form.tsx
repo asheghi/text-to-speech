@@ -9,6 +9,10 @@ import IconSpeaker from '@mui/icons-material/RecordVoiceOverOutlined'
 import IconLanguage from '@mui/icons-material/LanguageOutlined'
 import IconText from '@mui/icons-material/ArticleOutlined'
 import IconTune from '@mui/icons-material/TuneOutlined'
+import IconCode from '@mui/icons-material/CodeOutlined'
+import IconChevron from '@mui/icons-material/ExpandMoreOutlined'
+import IconCopy from '@mui/icons-material/ContentCopyOutlined'
+import IconCheck from '@mui/icons-material/CheckOutlined'
 
 import "./Form.scss"
 import { FormType } from "../FormType";
@@ -169,6 +173,31 @@ export const Form = (props: IFormProps): JSX.Element => {
         localStorage.setItem("voiceStyle", JSON.stringify(selectedVoiceStyle));
     }, [selectedLanguage, selectedModel, text, selectedSteps, selectedVoiceStyle])
 
+    const [showRequest, setShowRequest] = useState(false);
+    const [copiedKey, setCopiedKey] = useState<string | null>(null);
+
+    // Build request snippets from current form state (must be before early returns)
+    const requestSnippets = useMemo(() => {
+        const params = new URLSearchParams();
+        if (text?.trim()) params.set('text', text.trim());
+        if (selectedModel?.value) params.set('model', selectedModel.value);
+        params.set('speed', '1');
+        if (isSupertonic) {
+            params.set('steps', String(selectedSteps));
+            params.set('voiceStyle', selectedVoiceStyle);
+        }
+        const qs = params.toString();
+        const endpoint = `/api/tts.wav${qs ? '?' + qs : ''}`;
+        const origin = typeof window !== 'undefined' ? window.location.origin : '';
+        const curl = `curl "${origin}${endpoint}" --output speech.wav`;
+        const fetchSnippet = `const response = await fetch("${endpoint}");
+const blob = await response.blob();
+const url = URL.createObjectURL(blob);
+const a = document.createElement("a");
+a.href = url; a.download = "speech.wav"; a.click();`;
+        return { endpoint, curl, fetch: fetchSnippet };
+    }, [text, selectedModel?.value, isSupertonic, selectedSteps, selectedVoiceStyle]);
+
     if (modelsQuery.isPending) {
         return <p className="text-slate-300">Loading models…</p>
     }
@@ -199,6 +228,13 @@ export const Form = (props: IFormProps): JSX.Element => {
     function handleTextChange(event: { target: { value: string } }): void {
         setText(event.target.value);
     }
+
+    const handleCopy = (key: string, value: string) => {
+        navigator.clipboard.writeText(value).then(() => {
+            setCopiedKey(key);
+            setTimeout(() => setCopiedKey(null), 2000);
+        });
+    };
 
     const stepsMarks = [2, 4, 6, 8, 10, 12, 14, 16].map(it => ({ value: it, label: it }));
     const maleVoices = SUPERTONIC_VOICES.filter(v => v.gender === 'Male');
@@ -302,6 +338,73 @@ export const Form = (props: IFormProps): JSX.Element => {
             <FormHelperText sx={darkHelperSx}>text can be very long</FormHelperText>
         </FormControl>
         {props.player}
+
+        {/* HTTP request accordion */}
+        <div className="rounded-xl border border-slate-700 overflow-hidden">
+            <button
+                type="button"
+                onClick={() => setShowRequest(v => !v)}
+                className="w-full flex items-center gap-2 px-4 py-3 text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-700/40 transition-colors"
+            >
+                <IconCode fontSize="small" className="text-indigo-400" />
+                <span className="flex-1 text-left">View HTTP request</span>
+                <IconChevron
+                    fontSize="small"
+                    className="text-slate-400 transition-transform duration-200"
+                    style={{ transform: showRequest ? 'rotate(180deg)' : 'rotate(0deg)' }}
+                />
+            </button>
+            {showRequest && (
+                <div className="border-t border-slate-700 bg-slate-950/60 divide-y divide-slate-800">
+                    {/* Endpoint */}
+                    <div className="px-4 py-3">
+                        <div className="flex items-center justify-between mb-1">
+                            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Endpoint</span>
+                            <button
+                                type="button"
+                                onClick={() => handleCopy('endpoint', requestSnippets.endpoint)}
+                                className="flex items-center gap-1 text-xs text-slate-400 hover:text-indigo-300 transition-colors"
+                            >
+                                {copiedKey === 'endpoint' ? <IconCheck fontSize="inherit" /> : <IconCopy fontSize="inherit" />}
+                                {copiedKey === 'endpoint' ? 'Copied' : 'Copy'}
+                            </button>
+                        </div>
+                        <pre className="text-xs text-emerald-300 font-mono break-all whitespace-pre-wrap">{requestSnippets.endpoint}</pre>
+                    </div>
+                    {/* curl */}
+                    <div className="px-4 py-3">
+                        <div className="flex items-center justify-between mb-1">
+                            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">curl</span>
+                            <button
+                                type="button"
+                                onClick={() => handleCopy('curl', requestSnippets.curl)}
+                                className="flex items-center gap-1 text-xs text-slate-400 hover:text-indigo-300 transition-colors"
+                            >
+                                {copiedKey === 'curl' ? <IconCheck fontSize="inherit" /> : <IconCopy fontSize="inherit" />}
+                                {copiedKey === 'curl' ? 'Copied' : 'Copy'}
+                            </button>
+                        </div>
+                        <pre className="text-xs text-sky-300 font-mono whitespace-pre-wrap">{requestSnippets.curl}</pre>
+                    </div>
+                    {/* fetch */}
+                    <div className="px-4 py-3">
+                        <div className="flex items-center justify-between mb-1">
+                            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">JavaScript fetch</span>
+                            <button
+                                type="button"
+                                onClick={() => handleCopy('fetch', requestSnippets.fetch)}
+                                className="flex items-center gap-1 text-xs text-slate-400 hover:text-indigo-300 transition-colors"
+                            >
+                                {copiedKey === 'fetch' ? <IconCheck fontSize="inherit" /> : <IconCopy fontSize="inherit" />}
+                                {copiedKey === 'fetch' ? 'Copied' : 'Copy'}
+                            </button>
+                        </div>
+                        <pre className="text-xs text-violet-300 font-mono whitespace-pre-wrap">{requestSnippets.fetch}</pre>
+                    </div>
+                </div>
+            )}
+        </div>
+
         <div className="flex gap-2 self-end">
             <Button
                 disabled={props.isPending}
