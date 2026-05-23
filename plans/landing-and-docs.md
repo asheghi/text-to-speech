@@ -1,6 +1,6 @@
 # Landing Page + Docs + Move app to /app
 
-**Status:** in-progress
+**Status:** done (merged into main)
 **Created:** 2026-05-23
 **Worktree:** .claude/worktrees/agent-af36042e0bf5c102a (branch: worktree-agent-af36042e0bf5c102a)
 **Integration target:** main
