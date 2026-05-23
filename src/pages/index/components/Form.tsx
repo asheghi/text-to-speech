@@ -178,24 +178,39 @@ export const Form = (props: IFormProps): JSX.Element => {
 
     // Build request snippets from current form state (must be before early returns)
     const requestSnippets = useMemo(() => {
-        const params = new URLSearchParams();
-        if (text?.trim()) params.set('text', text.trim());
-        if (selectedModel?.value) params.set('model', selectedModel.value);
-        params.set('speed', '1');
-        if (isSupertonic) {
-            params.set('steps', String(selectedSteps));
-            params.set('voiceStyle', selectedVoiceStyle);
-        }
-        const qs = params.toString();
-        const endpoint = `/api/tts.wav${qs ? '?' + qs : ''}`;
         const origin = typeof window !== 'undefined' ? window.location.origin : '';
-        const curl = `curl "${origin}${endpoint}" --output speech.wav`;
-        const fetchSnippet = `const response = await fetch("${endpoint}");
-const blob = await response.blob();
-const url = URL.createObjectURL(blob);
-const a = document.createElement("a");
-a.href = url; a.download = "speech.wav"; a.click();`;
-        return { endpoint, curl, fetch: fetchSnippet };
+        const params: Array<{ key: string; value: string }> = [];
+        if (text?.trim()) params.push({ key: 'text', value: text.trim() });
+        if (selectedModel?.value) params.push({ key: 'model', value: selectedModel.value });
+        params.push({ key: 'speed', value: '1' });
+        if (isSupertonic) {
+            params.push({ key: 'steps', value: String(selectedSteps) });
+            params.push({ key: 'voiceStyle', value: selectedVoiceStyle });
+        }
+        const qs = params.map(p => `${encodeURIComponent(p.key)}=${encodeURIComponent(p.value)}`).join('&');
+        const endpoint = `/api/tts.wav${qs ? '?' + qs : ''}`;
+
+        const curlLines = [
+            `curl "${origin}/api/tts.wav" \\`,
+            ...params.map((p, i) =>
+                `  --data-urlencode "${p.key}=${p.value}"${i < params.length - 1 ? ' \\' : ' \\'}`
+            ),
+            `  --get --output speech.wav`,
+        ];
+
+        const fetchSnippet =
+`const params = new URLSearchParams(${JSON.stringify(Object.fromEntries(params.map(p => [p.key, p.value])), null, 2)});
+
+const res = await fetch(\`/api/tts.wav?\${params}\`);
+const blob = await res.blob();
+
+const a = Object.assign(document.createElement("a"), {
+  href: URL.createObjectURL(blob),
+  download: "speech.wav",
+});
+a.click();`;
+
+        return { endpoint, params, curl: curlLines.join('\n'), fetch: fetchSnippet };
     }, [text, selectedModel?.value, isSupertonic, selectedSteps, selectedVoiceStyle]);
 
     if (modelsQuery.isPending) {
@@ -339,73 +354,27 @@ a.href = url; a.download = "speech.wav"; a.click();`;
         </FormControl>
         {props.player}
 
-        {/* HTTP request accordion */}
-        <div className="rounded-xl border border-slate-700 overflow-hidden">
+        {/* action row: "View request" pill + Synthesize button */}
+        <div className="flex items-center gap-2">
             <button
                 type="button"
                 onClick={() => setShowRequest(v => !v)}
-                className="w-full flex items-center gap-2 px-4 py-3 text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-700/40 transition-colors"
+                className={[
+                    'inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors',
+                    showRequest
+                        ? 'border-indigo-500/60 bg-indigo-500/15 text-indigo-300'
+                        : 'border-slate-600 bg-transparent text-slate-400 hover:border-slate-500 hover:text-slate-200',
+                ].join(' ')}
             >
-                <IconCode fontSize="small" className="text-indigo-400" />
-                <span className="flex-1 text-left">View HTTP request</span>
+                <IconCode style={{ fontSize: 12 }} />
+                Request
                 <IconChevron
-                    fontSize="small"
-                    className="text-slate-400 transition-transform duration-200"
-                    style={{ transform: showRequest ? 'rotate(180deg)' : 'rotate(0deg)' }}
+                    style={{ fontSize: 12, transition: 'transform 0.2s', transform: showRequest ? 'rotate(180deg)' : 'rotate(0deg)' }}
                 />
             </button>
-            {showRequest && (
-                <div className="border-t border-slate-700 bg-slate-950/60 divide-y divide-slate-800">
-                    {/* Endpoint */}
-                    <div className="px-4 py-3">
-                        <div className="flex items-center justify-between mb-1">
-                            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Endpoint</span>
-                            <button
-                                type="button"
-                                onClick={() => handleCopy('endpoint', requestSnippets.endpoint)}
-                                className="flex items-center gap-1 text-xs text-slate-400 hover:text-indigo-300 transition-colors"
-                            >
-                                {copiedKey === 'endpoint' ? <IconCheck fontSize="inherit" /> : <IconCopy fontSize="inherit" />}
-                                {copiedKey === 'endpoint' ? 'Copied' : 'Copy'}
-                            </button>
-                        </div>
-                        <pre className="text-xs text-emerald-300 font-mono break-all whitespace-pre-wrap">{requestSnippets.endpoint}</pre>
-                    </div>
-                    {/* curl */}
-                    <div className="px-4 py-3">
-                        <div className="flex items-center justify-between mb-1">
-                            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">curl</span>
-                            <button
-                                type="button"
-                                onClick={() => handleCopy('curl', requestSnippets.curl)}
-                                className="flex items-center gap-1 text-xs text-slate-400 hover:text-indigo-300 transition-colors"
-                            >
-                                {copiedKey === 'curl' ? <IconCheck fontSize="inherit" /> : <IconCopy fontSize="inherit" />}
-                                {copiedKey === 'curl' ? 'Copied' : 'Copy'}
-                            </button>
-                        </div>
-                        <pre className="text-xs text-sky-300 font-mono whitespace-pre-wrap">{requestSnippets.curl}</pre>
-                    </div>
-                    {/* fetch */}
-                    <div className="px-4 py-3">
-                        <div className="flex items-center justify-between mb-1">
-                            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">JavaScript fetch</span>
-                            <button
-                                type="button"
-                                onClick={() => handleCopy('fetch', requestSnippets.fetch)}
-                                className="flex items-center gap-1 text-xs text-slate-400 hover:text-indigo-300 transition-colors"
-                            >
-                                {copiedKey === 'fetch' ? <IconCheck fontSize="inherit" /> : <IconCopy fontSize="inherit" />}
-                                {copiedKey === 'fetch' ? 'Copied' : 'Copy'}
-                            </button>
-                        </div>
-                        <pre className="text-xs text-violet-300 font-mono whitespace-pre-wrap">{requestSnippets.fetch}</pre>
-                    </div>
-                </div>
-            )}
-        </div>
 
-        <div className="flex gap-2 self-end">
+            <div className="flex-1" />
+
             <Button
                 disabled={props.isPending}
                 loading={props.isPending}
@@ -415,19 +384,75 @@ a.href = url; a.download = "speech.wav"; a.click();`;
                     background: 'linear-gradient(90deg, #6366f1, #8b5cf6)',
                     color: '#fff',
                     fontWeight: 500,
-                    '&:hover': {
-                        background: 'linear-gradient(90deg, #818cf8, #a78bfa)',
-                    },
-                    '&.Mui-disabled': {
-                        background: 'rgba(99, 102, 241, 0.4)',
-                        color: 'rgba(255, 255, 255, 0.7)',
-                    },
+                    '&:hover': { background: 'linear-gradient(90deg, #818cf8, #a78bfa)' },
+                    '&.Mui-disabled': { background: 'rgba(99, 102, 241, 0.4)', color: 'rgba(255,255,255,0.7)' },
                 }}
             >
                 {props.isPending ? <LoadingIcon /> : <GenerateIcon />}
                 {props.isPending ? 'Generating' : 'Synthesize'}
             </Button>
         </div>
+
+        {/* accordion content */}
+        {showRequest && (
+            <div className="rounded-xl border border-slate-700 bg-slate-950/70 overflow-hidden text-xs font-mono">
+
+                {/* Parameters table */}
+                <div className="px-4 pt-3 pb-2">
+                    <div className="flex items-center justify-between mb-2">
+                        <span className="font-sans text-[10px] font-semibold uppercase tracking-wider text-slate-500">Parameters</span>
+                    </div>
+                    <table className="w-full border-collapse">
+                        <tbody>
+                            {requestSnippets.params.map(p => (
+                                <tr key={p.key} className="group">
+                                    <td className="pr-4 py-0.5 text-indigo-300 whitespace-nowrap align-top">{p.key}</td>
+                                    <td className="text-slate-400 pr-1 align-top">=</td>
+                                    <td className="text-emerald-300 break-all">{p.value}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div className="border-t border-slate-800" />
+
+                {/* curl */}
+                <div className="px-4 py-3">
+                    <div className="flex items-center justify-between mb-2">
+                        <span className="font-sans text-[10px] font-semibold uppercase tracking-wider text-slate-500">curl</span>
+                        <button
+                            type="button"
+                            onClick={() => handleCopy('curl', requestSnippets.curl)}
+                            className="font-sans inline-flex items-center gap-1 text-[10px] text-slate-400 hover:text-indigo-300 transition-colors"
+                        >
+                            {copiedKey === 'curl' ? <IconCheck style={{ fontSize: 11 }} /> : <IconCopy style={{ fontSize: 11 }} />}
+                            {copiedKey === 'curl' ? 'Copied!' : 'Copy'}
+                        </button>
+                    </div>
+                    <pre className="text-sky-300 whitespace-pre-wrap leading-5">{requestSnippets.curl}</pre>
+                </div>
+
+                <div className="border-t border-slate-800" />
+
+                {/* fetch */}
+                <div className="px-4 py-3">
+                    <div className="flex items-center justify-between mb-2">
+                        <span className="font-sans text-[10px] font-semibold uppercase tracking-wider text-slate-500">JavaScript</span>
+                        <button
+                            type="button"
+                            onClick={() => handleCopy('fetch', requestSnippets.fetch)}
+                            className="font-sans inline-flex items-center gap-1 text-[10px] text-slate-400 hover:text-indigo-300 transition-colors"
+                        >
+                            {copiedKey === 'fetch' ? <IconCheck style={{ fontSize: 11 }} /> : <IconCopy style={{ fontSize: 11 }} />}
+                            {copiedKey === 'fetch' ? 'Copied!' : 'Copy'}
+                        </button>
+                    </div>
+                    <pre className="text-violet-300 whitespace-pre-wrap leading-5">{requestSnippets.fetch}</pre>
+                </div>
+
+            </div>
+        )}
 
     </form>
 }
