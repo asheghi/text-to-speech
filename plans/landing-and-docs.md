@@ -25,7 +25,8 @@ Replace the plain TTS form at `/` with a polished, modern landing page that mark
 - [x] T2 — Create `DocsPage.tsx` with sidebar nav, HTTP API + tRPC API sections
 - [x] T3 — Update `src/router.tsx` to wire new routes; move `IndexPage` to `/app`
 - [x] T4 — Run `bun run build` and `bun run lint`; verify no new failures
-- [ ] T5 — Commit and merge into `main`
+- [x] T5 — Commit and merge into `main`
+- [x] T6 — Push to `origin/main`
 
 ## Decisions
 
@@ -44,3 +45,4 @@ Replace the plain TTS form at `/` with a polished, modern landing page that mark
 - 2026-05-23 — Rewrote `src/router.tsx`: `/` → LandingPage, `/docs` → DocsPage (both outside RootLayout). RootLayout now wraps `/app`, `/reader`, `/reader/:shareId`, `/status`.
 - 2026-05-23 — Added `backLink="/"` to IndexPage so users can return to landing from `/app`.
 - 2026-05-23 — `bun run build` passes (tsc + vite build). `bun run lint` shows only the 3 pre-existing errors + 4 pre-existing warnings documented in CLAUDE.md; no new lint issues introduced.
+- 2026-05-23 — Pushed to `origin/main` (3 commits: feat, merge, plan update).
