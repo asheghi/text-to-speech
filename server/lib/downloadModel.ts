@@ -111,6 +111,9 @@ async function downloadCustomModel(model: CustomModel): Promise<void> {
         if (model.postProcess === 'piper-raw') {
             await convertPiperRawToSherpa(targetDir, model.piperFallback);
         }
+        // Still check for any missing extraFiles even when the dir already exists
+        // (handles the case where the model was downloaded before extraFiles were added).
+        await downloadExtraFiles(model, targetDir);
         return;
     }
 
@@ -176,5 +179,32 @@ async function downloadCustomModel(model: CustomModel): Promise<void> {
         await convertPiperRawToSherpa(targetDir, model.piperFallback);
     }
 
+    await downloadExtraFiles(model, targetDir);
+
     console.log(`Custom model ${model.modelName} ready at ${targetDir}`);
+}
+
+/**
+ * Download any supplementary files listed in `model.extraFiles` that are not
+ * yet present in the target directory. Safe to call multiple times — already-
+ * present files are skipped.
+ */
+async function downloadExtraFiles(model: CustomModel, targetDir: string): Promise<void> {
+    if (!model.extraFiles || model.extraFiles.length === 0) return;
+
+    const missing = model.extraFiles.filter(f => !fs.existsSync(path.join(targetDir, f.destName)));
+    if (missing.length === 0) return;
+
+    console.log(`[customModel] ${model.modelName}: downloading ${missing.length} supplementary file(s)`);
+    if (!fs.existsSync(targetDir)) fs.mkdirSync(targetDir, { recursive: true });
+
+    for (const f of missing) {
+        const dest = path.join(targetDir, f.destName);
+        console.log(`  downloading ${f.url} -> ${dest}`);
+        const res = await fetch(f.url);
+        if (!res.ok) {
+            throw new Error(`Failed to download supplementary file ${f.url}: ${res.status}`);
+        }
+        fs.writeFileSync(dest, Buffer.from(await res.arrayBuffer()));
+    }
 }

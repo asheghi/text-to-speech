@@ -46,7 +46,9 @@ export const IndexPage = (): JSX.Element => {
                 content: formState.text,
                 language: formState.language,
                 model: formState.model,
-                speed: 1.0 // Default speed for IndexPage
+                speed: 1.0, // Default speed for IndexPage
+                steps: formState.steps,
+                voiceStyle: formState.voiceStyle,
             });
             
             navigate(`/reader/${result.shareId}`);

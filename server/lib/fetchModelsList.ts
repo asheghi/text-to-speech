@@ -13,6 +13,9 @@ export type ModelType = {
     created_at: string;
     updated_at: string;
     url: string;
+    /** TTS model family — set for known families so the frontend can choose
+     *  the right settings panel without name-sniffing. */
+    family?: 'supertonic' | 'vits' | 'kitten';
 }
 export async function fetchModelsList(filter?: string): Promise<ModelType[]> {
     try {
@@ -38,10 +41,10 @@ export async function fetchModelsList(filter?: string): Promise<ModelType[]> {
         // GitHub release. Dedupe by modelName (custom wins if conflict).
         const customs: ModelType[] = customModels
             .filter((c) => !filter || c.modelName.indexOf(filter) > -1)
-            // strip the postProcess / innerPath fields that are only used by the downloader
+            // strip the postProcess / innerPath / extraFiles fields that are only used by the downloader
             .map((c) => {
-                const { fileName, modelName, content_type, size, created_at, updated_at, url } = c;
-                return { fileName, modelName, content_type, size, created_at, updated_at, url };
+                const { fileName, modelName, content_type, size, created_at, updated_at, url, family } = c;
+                return { fileName, modelName, content_type, size, created_at, updated_at, url, family };
             });
         const customNames = new Set(customs.map((c) => c.modelName));
         return [

@@ -21,17 +21,19 @@ export const ttsRouter = t.router({
             title: z.string().optional(),
             language: z.string().optional(),
             model: z.string().optional(),
-            speed: z.number().optional()
+            speed: z.number().optional(),
+            steps: z.number().optional(),
+            voiceStyle: z.string().optional(),
         }))
         .mutation(async ({ input }) => {
             const shareId = nanoid(10); // Generate a short unique ID
-            
+
             // Create shared directory if it doesn't exist
             const sharedDir = path.join(process.cwd(), 'data', 'shared');
             if (!fs.existsSync(sharedDir)) {
                 fs.mkdirSync(sharedDir, { recursive: true });
             }
-            
+
             // Create content object
             const contentData = {
                 content: input.content,
@@ -39,6 +41,8 @@ export const ttsRouter = t.router({
                 language: input.language,
                 model: input.model,
                 speed: input.speed,
+                steps: input.steps,
+                voiceStyle: input.voiceStyle,
                 createdAt: new Date().toISOString()
             };
             
@@ -71,6 +75,8 @@ export const ttsRouter = t.router({
                 language: contentData.language,
                 model: contentData.model,
                 speed: contentData.speed,
+                steps: contentData.steps,
+                voiceStyle: contentData.voiceStyle,
                 createdAt: contentData.createdAt
             };
         })

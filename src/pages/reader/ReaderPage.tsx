@@ -71,7 +71,10 @@ const ReaderPage = (): JSX.Element => {
     const [shareModalOpen, setShareModalOpen] = useState(false);
     const [shareContentId, setShareContentId] = useState('');
 
-    const { changeSpeed, model, speed, text, language, changeLanguage, changeModel, changeText } = useSource();
+    const {
+        changeSpeed, model, speed, text, language, changeLanguage, changeModel, changeText,
+        steps, voiceStyle, changeSteps, changeVoiceStyle,
+    } = useSource();
 
     // Handle text changes when in shared mode
     const handleTextChange = useCallback((newText: string) => {
@@ -117,6 +120,12 @@ const ReaderPage = (): JSX.Element => {
             if (sharedContent.speed && speed === 1) { // Default speed is 1
                 changeSpeed(sharedContent.speed);
             }
+            if (sharedContent.steps) {
+                changeSteps(sharedContent.steps);
+            }
+            if (sharedContent.voiceStyle) {
+                changeVoiceStyle(sharedContent.voiceStyle);
+            }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [shareId]);
@@ -146,9 +155,9 @@ const ReaderPage = (): JSX.Element => {
     });
 
     const links = useMemo(() => sentences.map(it => {
-        const url = getTtsLink(it, model ?? "", speed);
+        const url = getTtsLink(it, model ?? "", speed, steps, voiceStyle);
         return url;
-    }), [model, sentences, speed]);
+    }), [model, sentences, speed, steps, voiceStyle]);
 
     const {
         isPlaying,
@@ -239,7 +248,9 @@ const ReaderPage = (): JSX.Element => {
             title: 'Shared Text to Speech',
             language,
             model,
-            speed
+            speed,
+            steps,
+            voiceStyle,
         });
     }
 
@@ -334,13 +345,13 @@ const ReaderPage = (): JSX.Element => {
                 onModelSelect={changeModel}
                 model={model}
                 language={language}
-                onClose={() => {
-                    setShowSpeakerModal(false);
-                }}
+                onClose={() => setShowSpeakerModal(false)}
                 speed={speed}
-                onSpeedChange={(val) => {
-                    changeSpeed(val)
-                }}
+                onSpeedChange={changeSpeed}
+                steps={steps}
+                onStepsChange={changeSteps}
+                voiceStyle={voiceStyle}
+                onVoiceStyleChange={changeVoiceStyle}
             />}
             <ShareModal
                 open={shareModalOpen}

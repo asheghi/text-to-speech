@@ -41,6 +41,14 @@ export type CustomModel = ModelType & {
      */
     rawFiles?: Array<{ url: string; destName: string }>;
     /**
+     * Supplementary files to download into the model directory AFTER the main
+     * archive extraction (or alongside rawFiles). Checked on every download —
+     * any missing files are fetched even if the model directory already exists.
+     * Used for Supertonic to pull unicode_indexer.json and voice style JSONs
+     * from the official HuggingFace repo alongside the k2-fsa int8 bundle.
+     */
+    extraFiles?: Array<{ url: string; destName: string }>;
+    /**
      * Pinned speaker id for multi-speaker models where the picker shouldn't
      * expose the full sid range. Example: Daniel ships a 16-speaker VITS but
      * only one sid is the actual cloned "Daniel" voice — pin that one.
@@ -53,20 +61,25 @@ export type CustomModel = ModelType & {
     notes?: string;
     /**
      * If set, this entry doesn't have its own files — it shares the model
-     * directory of `aliasOf` and just overrides `defaultSid` and/or
-     * `defaultLang`. Used to expose multi-voice / multilingual bundles
-     * (like Supertonic with 10 voice styles × 31 languages) as N picker
+     * directory of `aliasOf` and just overrides `defaultLang`. Used to expose
+     * multi-language bundles (like Supertonic with 31 languages) as N picker
      * entries that re-use one disk footprint and one in-memory TTS instance.
      */
     aliasOf?: string;
     /**
-     * Language code (ISO 639-1) passed as `extra.lang` to Supertonic's
-     * GenerationConfig. Only Supertonic actually reads this — for VITS it's
-     * carried in the cache key but has no effect on generation. Defaults to
-     * 'sv' in tts.ts to preserve existing audio cache.
+     * Language code (ISO 639-1) passed to Supertonic's native engine as the
+     * `lang` argument. Defaults to 'sv' in tts.ts to preserve existing audio
+     * cache.
      */
     defaultLang?: string;
+    /**
+     * TTS model family. Set on Supertonic source entries so the frontend can
+     * detect which settings panel to show without name-sniffing.
+     */
+    family?: 'supertonic' | 'vits' | 'kitten';
 };
+
+const HF_SUPERTONIC = 'https://huggingface.co/Supertone/supertonic-3/resolve/main';
 
 export const customModels: CustomModel[] = [
     {
@@ -115,14 +128,18 @@ export const customModels: CustomModel[] = [
         notes: 'MMS-TTS Swedish — Meta AI base, willwade ONNX conversion. 16 kHz (lower fidelity than 22.05 kHz Piper voices). NON-COMMERCIAL USE ONLY.',
     },
     {
-        // Supertonic 3 multilingual: 31 languages including Swedish, 44.1 kHz
-        // output (~2× Piper, ~2.75× MMS). Uses a different model family than
-        // VITS — 4 separate ONNX files + tts.json + unicode_indexer + voice
-        // styles. Generation uses sherpa_onnx.GenerationConfig with
-        // extra.lang='sv'. See tts.ts detectFamily/createSupertonicTTS.
+        // Supertonic 3 multilingual: 31 languages, 44.1 kHz output.
+        // Uses the native onnxruntime-node inference engine (NOT sherpa-onnx)
+        // so totalStep, named voice styles (M1-F5), language, and speed are
+        // all fully exposed as first-class parameters.
         //
-        // This is the source entry (sid=0). 9 voice-style aliases follow,
-        // sharing this download and just overriding defaultSid.
+        // The k2-fsa int8 bundle supplies the 4 ONNX files + tts.json.
+        // The extraFiles supply the supplementary assets needed by the native
+        // engine: unicode_indexer.json + 10 voice style JSON embeddings.
+        //
+        // This is the source entry (sv = Swedish). 30 language aliases follow,
+        // sharing this download. Voice style is now a separate UI parameter —
+        // no per-voice aliases needed.
         fileName: 'sherpa-onnx-supertonic-3-tts-int8-2026-05-11.tar.bz2',
         modelName: 'supertonic-3-sv-int8',
         content_type: 'application/x-bzip2',
@@ -133,39 +150,30 @@ export const customModels: CustomModel[] = [
         postProcess: 'none',
         innerPath: 'sherpa-onnx-supertonic-3-tts-int8-2026-05-11',
         license: 'OpenRAIL-M (commercial use generally permitted with RAIL restrictions)',
-        notes: 'Supertonic 3 — voice 0 of 10 (the default voice.bin style). 44.1 kHz, ~123 MB shared with v1-v9 and 30 other language aliases.',
-        defaultSid: 0,
+        notes: 'Supertonic 3 Swedish — 44.1 kHz, ~128 MB, 10 named voices (M1-F5), 31 languages via aliases.',
         defaultLang: 'sv',
+        family: 'supertonic',
+        extraFiles: [
+            // Unicode character→token-index mapping (needed by native engine).
+            // The k2-fsa bundle ships unicode_indexer.bin (sherpa-onnx format);
+            // the native engine needs the JSON version from the official HF repo.
+            { url: `${HF_SUPERTONIC}/onnx/unicode_indexer.json`, destName: 'unicode_indexer.json' },
+            // Voice style embeddings (M1–M5 male, F1–F5 female).
+            { url: `${HF_SUPERTONIC}/voice_styles/M1.json`, destName: 'M1.json' },
+            { url: `${HF_SUPERTONIC}/voice_styles/M2.json`, destName: 'M2.json' },
+            { url: `${HF_SUPERTONIC}/voice_styles/M3.json`, destName: 'M3.json' },
+            { url: `${HF_SUPERTONIC}/voice_styles/M4.json`, destName: 'M4.json' },
+            { url: `${HF_SUPERTONIC}/voice_styles/M5.json`, destName: 'M5.json' },
+            { url: `${HF_SUPERTONIC}/voice_styles/F1.json`, destName: 'F1.json' },
+            { url: `${HF_SUPERTONIC}/voice_styles/F2.json`, destName: 'F2.json' },
+            { url: `${HF_SUPERTONIC}/voice_styles/F3.json`, destName: 'F3.json' },
+            { url: `${HF_SUPERTONIC}/voice_styles/F4.json`, destName: 'F4.json' },
+            { url: `${HF_SUPERTONIC}/voice_styles/F5.json`, destName: 'F5.json' },
+        ],
     },
-    // Supertonic voice aliases: 9 additional Swedish voices from the same
-    // bundle, selected by sid at generation time. Zero extra disk — they all
-    // share the supertonic-3-sv-int8 model directory and OfflineTts instance.
-    ...Array.from({ length: 9 }, (_, i) => {
-        const sid = i + 1;
-        return {
-            fileName: '',
-            modelName: `supertonic-3-sv-int8-v${sid}`,
-            content_type: 'application/x-bzip2',
-            size: '0',
-            created_at: '2026-05-11T00:00:00Z',
-            updated_at: '2026-05-11T00:00:00Z',
-            url: '',
-            postProcess: 'none' as const,
-            license: 'OpenRAIL-M (commercial use generally permitted with RAIL restrictions)',
-            notes: `Supertonic 3 Swedish — voice ${sid} of 10 (alias of supertonic-3-sv-int8 with sid=${sid}).`,
-            aliasOf: 'supertonic-3-sv-int8',
-            defaultSid: sid,
-            defaultLang: 'sv',
-        };
-    }),
-    // Supertonic supports 30 more languages beyond Swedish from the SAME
-    // bundle; each shows up here as one picker entry (sid=0 default voice).
-    // Zero extra disk — same alias mechanism as the voice variants. If a
-    // particular language needs voice variants later, add them with the same
-    // `aliasOf + defaultSid + defaultLang` triple. Codes match the Supertonic
-    // 3 README's "Language Support" table and the frontend's languageList ISO
-    // 639-1 codes — so they slot into the existing language dropdown without
-    // any frontend change.
+    // Supertonic language aliases: 30 languages beyond Swedish from the same
+    // bundle. Voice style is a separate UI parameter (no per-voice aliases).
+    // Zero extra disk — same alias mechanism; only defaultLang differs.
     ...(
         ['en', 'ko', 'ja', 'ar', 'bg', 'cs', 'da', 'de', 'el', 'es',
          'et', 'fi', 'fr', 'hi', 'hr', 'hu', 'id', 'it', 'lt', 'lv',
@@ -181,10 +189,10 @@ export const customModels: CustomModel[] = [
         url: '',
         postProcess: 'none' as const,
         license: 'OpenRAIL-M (commercial use generally permitted with RAIL restrictions)',
-        notes: `Supertonic 3 (${lang}) — voice 0 of 10. Alias of supertonic-3-sv-int8, lang=${lang}.`,
+        notes: `Supertonic 3 (${lang}) — alias of supertonic-3-sv-int8, lang=${lang}. 10 voices (M1-F5) available.`,
         aliasOf: 'supertonic-3-sv-int8',
-        defaultSid: 0,
         defaultLang: lang,
+        family: 'supertonic' as const,
     })),
 ];
 

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import * as  sherpa_onnx from 'sherpa-onnx-node';
+import * as sherpa_onnx from 'sherpa-onnx-node';
 import fs from 'fs'
 import { join, resolve } from 'path';
 import { downloadModel } from './downloadModel.js';
@@ -7,20 +7,33 @@ import objectHash from 'object-hash'
 import { env } from '../env';
 import os from 'node:os'
 import { findCustomModel } from './customModels';
+import { loadSupertonicTTS } from './supertonicEngine.js';
+import {
+    DEFAULT_VOICE_STYLE,
+    DEFAULT_STEPS,
+    MIN_STEPS,
+    MAX_STEPS,
+    type VoiceStyleId,
+} from './supertonicVoices.js';
 
 
 const ThreadCount = env.THREAD_COUNT ?? (os.cpus()).length;
 
-type Family = 'vits' | 'supertonic';
+type Family = 'vits' | 'supertonic' | 'kitten';
 
 /**
- * Detect which TTS model family lives in a bundle directory. Supertonic is
- * uniquely identifiable by `tts.json` + `unicode_indexer.bin` at the root;
- * everything else we currently support is single-onnx VITS (Piper, MMS, Coqui).
+ * Detect which TTS model family lives in a bundle directory.
+ * - Supertonic: `tts.json` + `unicode_indexer.json` or `unicode_indexer.bin` at root.
+ * - Kitten TTS: `voices.bin` at root.
+ * - Everything else: single-onnx VITS (Piper, MMS, Coqui).
  */
 function detectFamily(files: string[]): Family {
-    if (files.includes('tts.json') && files.includes('unicode_indexer.bin')) {
+    // Supertonic: tts.json + unicode_indexer (either .json or .bin)
+    if (files.includes('tts.json') && (files.includes('unicode_indexer.json') || files.includes('unicode_indexer.bin'))) {
         return 'supertonic';
+    }
+    if (files.includes('voices.bin')) {
+        return 'kitten';
     }
     return 'vits';
 }
@@ -54,48 +67,59 @@ function createVitsTTS(baseDir: string, files: string[]): any {
     });
 }
 
-function createSupertonicTTS(baseDir: string, files: string[]): any {
-    const findOnnx = (prefix: string): string => {
-        const f = files.find(it => it.startsWith(prefix) && it.endsWith('.onnx'));
-        if (!f) throw new Error(`Supertonic: missing ${prefix}*.onnx in ${baseDir}`);
-        return resolve(join(baseDir, f));
+function createKittenTTS(baseDir: string, files: string[]): any {
+    const onnxFile = files.find(it => it.endsWith('.onnx'));
+    if (!onnxFile) {
+        throw new Error('Kitten model: no .onnx file in ' + baseDir);
+    }
+    if (!files.includes('voices.bin')) {
+        throw new Error('Kitten model: missing voices.bin in ' + baseDir);
+    }
+    const tokensPath = files.includes('tokens.txt') ? resolve(join(baseDir, 'tokens.txt')) : undefined;
+    const dataPath = files.includes('espeak-ng-data') ? resolve(join(baseDir, 'espeak-ng-data')) : undefined;
+    if (!dataPath) {
+        throw new Error(
+            `Kitten model: missing espeak-ng-data in ${baseDir}. ` +
+            `Cannot load model — sherpa-onnx would call exit() without it.`
+        );
+    }
+
+    const kitten: any = {
+        model: resolve(join(baseDir, onnxFile)),
+        voices: resolve(join(baseDir, 'voices.bin')),
     };
-    const requireFile = (name: string): string => {
-        if (!files.includes(name)) {
-            throw new Error(`Supertonic: missing ${name} in ${baseDir}`);
-        }
-        return resolve(join(baseDir, name));
-    };
+    if (tokensPath) kitten.tokens = tokensPath;
+    kitten.dataDir = dataPath;
 
     return new sherpa_onnx.OfflineTts({
         model: {
-            supertonic: {
-                durationPredictor: findOnnx('duration_predictor'),
-                textEncoder: findOnnx('text_encoder'),
-                vectorEstimator: findOnnx('vector_estimator'),
-                vocoder: findOnnx('vocoder'),
-                ttsJson: requireFile('tts.json'),
-                unicodeIndexer: requireFile('unicode_indexer.bin'),
-                voiceStyle: requireFile('voice.bin'),
-            },
+            kitten,
             debug: true,
             numThreads: ThreadCount,
             provider: 'cpu',
         },
         maxNumSentences: 0,
+        ruleFsts: '',
+        ruleFars: '',
+        debug: true,
     });
 }
 
-async function createTTS(modelName?: string): Promise<{ tts: any; family: Family }> {
+type TtsEntry =
+    | { family: 'vits' | 'kitten'; tts: any }
+    | { family: 'supertonic'; tts: Awaited<ReturnType<typeof loadSupertonicTTS>> };
+
+async function createTTS(modelName?: string): Promise<TtsEntry> {
     if (!modelName) {
         throw new Error('create TTS is called without model name');
     }
     const baseDir = join(env.MODELS_DIR, modelName);
 
-    if (!fs.existsSync(baseDir)) {
-        console.log(`Model directory ${baseDir} does not exist`);
-        await downloadModel(modelName);
-    }
+    // Always run downloadModel — it is idempotent. For models whose directory
+    // already exists it skips the archive download but still fetches any
+    // missing extraFiles (e.g. the Supertonic supplementary assets added after
+    // the model was first installed).
+    await downloadModel(modelName);
     if (!fs.existsSync(baseDir)) {
         throw new Error(`Model ${modelName} could not be prepared at ${baseDir}`);
     }
@@ -108,21 +132,25 @@ async function createTTS(modelName?: string): Promise<{ tts: any; family: Family
     const family = detectFamily(files);
     console.log(`[TTS] family for ${modelName}: ${family}`);
 
-    const tts = family === 'supertonic'
-        ? createSupertonicTTS(baseDir, files)
+    if (family === 'supertonic') {
+        const tts = await loadSupertonicTTS(baseDir);
+        return { family, tts };
+    }
+
+    const tts = family === 'kitten'
+        ? createKittenTTS(baseDir, files)
         : createVitsTTS(baseDir, files);
 
-    return { tts, family };
+    return { family, tts };
 }
 
 
-const cache: { [key: string]: { tts: any; family: Family } } = {};
+const cache: { [key: string]: TtsEntry } = {};
 
 /**
  * Resolve a model name to the actual directory + cache key. Alias entries
- * (e.g. Supertonic voice variants) point at a source model whose files they
- * share; we want one OfflineTts instance in memory regardless of how many
- * voice aliases the picker exposes.
+ * point at a source model whose files they share; we want one TTS instance
+ * in memory regardless of how many aliases the picker exposes.
  */
 function resolveSourceModelName(modelName: string): string {
     return findCustomModel(modelName)?.aliasOf ?? modelName;
@@ -139,19 +167,27 @@ async function getTTS(modelName: string) {
 }
 
 
-export async function generateSentence(modelName: string, text: string, speed: number) {
-    console.log("[TTS] generate sentence", { text, modelName });
+export async function generateSentence(
+    modelName: string,
+    text: string,
+    speed: number,
+    steps: number = DEFAULT_STEPS,
+    voiceStyle: VoiceStyleId = DEFAULT_VOICE_STYLE,
+): Promise<string> {
+    console.log("[TTS] generate sentence", { text, modelName, steps, voiceStyle });
+
     const custom = findCustomModel(modelName);
-    // Per-model pinned speaker id (for multi-speaker bundles where we want to
-    // expose just one voice). Falls back to 0 — the original behavior.
-    const sid = custom?.defaultSid ?? 0;
-    // Language code passed as Supertonic's `extra.lang`. For VITS it has no
-    // effect on generation but is still in the cache key. Default 'sv' to
-    // preserve existing cache entries created when the language was hardcoded.
+    // Language code for Supertonic. For VITS it's in the cache key but has no
+    // effect on generation. Default 'sv' to preserve existing audio cache.
     const lang = custom?.defaultLang ?? 'sv';
-    // Include sid + lang in the cache key so different speakers/languages
-    // don't collide.
-    const hash = objectHash({ modelName, text, speed, sid, lang });
+
+    // Clamp steps to valid range
+    const clampedSteps = Math.max(MIN_STEPS, Math.min(MAX_STEPS, Math.round(steps)));
+
+    // Include all generation params in the cache key so different settings
+    // never collide. (sid is removed — replaced by voiceStyle for Supertonic;
+    // VITS has no voice selection, so voiceStyle is harmless in the key.)
+    const hash = objectHash({ modelName, text, speed, lang, steps: clampedSteps, voiceStyle });
     const filename = hash + '.wav';
     const filePath = join(env.AUDIO_DIR, filename);
 
@@ -160,46 +196,79 @@ export async function generateSentence(modelName: string, text: string, speed: n
         return filePath;
     }
 
-    const { tts, family } = await getTTS(modelName);
+    const entry = await getTTS(modelName);
 
-    generateSpeech(tts, family, text, filePath, speed, sid, lang);
+    await generateSpeech(entry, text, filePath, speed, clampedSteps, voiceStyle, lang);
 
     return filePath;
 }
 
-function generateSpeech(
-    tts: any,
-    family: Family,
+async function generateSpeech(
+    entry: TtsEntry,
     text: string,
     filePath: string,
     speed: number,
-    speakerId: number,
+    steps: number,
+    voiceStyle: VoiceStyleId,
     lang: string,
-) {
+): Promise<void> {
     const before = Date.now();
-    console.log('[TTS] generate speech', { family, speed, speakerId, lang }, text.substring(0, 50));
+    console.log('[TTS] generate speech', { family: entry.family, speed, steps, voiceStyle, lang }, text.substring(0, 50));
 
-    let audio;
-    if (family === 'supertonic') {
-        // Supertonic requires the GenerationConfig form (extra.lang is its
-        // language selector at inference time).
-        const generationConfig = new sherpa_onnx.GenerationConfig({
-            sid: speakerId,
-            speed,
-            extra: { lang },
-        });
-        audio = tts.generate({ text, generationConfig });
+    if (entry.family === 'supertonic') {
+        const { samples, sampleRate } = await entry.tts.generate(text, lang, voiceStyle, steps, speed);
+        writePcmWav(filePath, samples, sampleRate);
     } else {
-        // VITS keeps the flat form (preserves existing behavior bit-for-bit).
-        audio = tts.generate({
+        // VITS and Kitten both use the flat sherpa-onnx generate form.
+        // voiceStyle is Supertonic-only; VITS always uses sid=0 because each
+        // picker entry is already a distinct model (no multi-voice aliases).
+        const audio = entry.tts.generate({
             text,
-            sid: speakerId,
+            sid: 0,
             speed,
             enableExternalBuffer: true,
         });
+        sherpa_onnx.writeWave(filePath, { samples: audio.samples, sampleRate: audio.sampleRate });
     }
 
-    sherpa_onnx.writeWave(filePath, { samples: audio.samples, sampleRate: audio.sampleRate });
     const after = Date.now();
     console.log('[TTS] finished', { filePath, duration: after - before });
 }
+
+/**
+ * Write a 16-bit mono PCM WAV file from a Float32Array of normalised samples.
+ * Used by the native Supertonic path (sherpa-onnx's writeWave is not called).
+ */
+function writePcmWav(filePath: string, samples: Float32Array, sampleRate: number): void {
+    const numChannels = 1;
+    const bitsPerSample = 16;
+    const byteRate = sampleRate * numChannels * (bitsPerSample / 8);
+    const blockAlign = numChannels * (bitsPerSample / 8);
+    const dataSize = samples.length * (bitsPerSample / 8);
+
+    const buffer = Buffer.alloc(44 + dataSize);
+
+    buffer.write('RIFF', 0);
+    buffer.writeUInt32LE(36 + dataSize, 4);
+    buffer.write('WAVE', 8);
+    buffer.write('fmt ', 12);
+    buffer.writeUInt32LE(16, 16);
+    buffer.writeUInt16LE(1, 20);          // PCM
+    buffer.writeUInt16LE(numChannels, 22);
+    buffer.writeUInt32LE(sampleRate, 24);
+    buffer.writeUInt32LE(byteRate, 28);
+    buffer.writeUInt16LE(blockAlign, 32);
+    buffer.writeUInt16LE(bitsPerSample, 34);
+    buffer.write('data', 36);
+    buffer.writeUInt32LE(dataSize, 40);
+
+    for (let i = 0; i < samples.length; i++) {
+        const s = Math.max(-1, Math.min(1, samples[i]));
+        buffer.writeInt16LE(Math.round(s * 32767), 44 + i * 2);
+    }
+
+    fs.writeFileSync(filePath, buffer);
+}
+
+// Re-export constants so callers (server/index.ts etc.) can import from one place.
+export { DEFAULT_STEPS, MIN_STEPS, MAX_STEPS, DEFAULT_VOICE_STYLE, type VoiceStyleId };
