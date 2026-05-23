@@ -21,14 +21,15 @@ export const router = createBrowserRouter([
     errorElement: <ErrorPage />,
   },
   {
+    path: '/studio',
+    element: <IndexPage />,
+    errorElement: <ErrorPage />,
+  },
+  {
     path: '/',
     element: <RootLayout />,
     errorElement: <ErrorPage />,
     children: [
-      {
-        path: 'app',
-        element: <IndexPage />,
-      },
       {
         path: 'reader',
         element: <ReaderPage />,

@@ -41,6 +41,83 @@ const getLocalStorageItem = (key: string) => () => {
     }
 };
 
+// Dark-theme sx overrides for MUI Joy form controls.
+const darkInputSx = {
+    backgroundColor: 'rgba(15, 23, 42, 0.7)',
+    color: '#e2e8f0',
+    borderColor: 'rgba(71, 85, 105, 0.8)',
+    '&:hover': {
+        borderColor: 'rgba(99, 102, 241, 0.6)',
+        backgroundColor: 'rgba(15, 23, 42, 0.85)',
+    },
+    '&.Mui-focused, &:focus-within': {
+        borderColor: '#818cf8',
+        '--Input-focusedHighlight': '#818cf8',
+    },
+    '&.Mui-disabled': {
+        opacity: 0.6,
+    },
+    '--Input-placeholderColor': 'rgba(148, 163, 184, 0.7)',
+};
+
+const darkLabelSx = {
+    color: '#cbd5e1',
+    fontWeight: 500,
+    '& svg': { color: '#94a3b8' },
+};
+
+const darkHelperSx = {
+    color: '#94a3b8',
+    fontSize: '0.75rem',
+};
+
+const darkSelectSx = {
+    backgroundColor: 'rgba(15, 23, 42, 0.7)',
+    color: '#e2e8f0',
+    borderColor: 'rgba(71, 85, 105, 0.8)',
+    '&:hover': {
+        backgroundColor: 'rgba(15, 23, 42, 0.85)',
+        borderColor: 'rgba(99, 102, 241, 0.6)',
+    },
+    '& .MuiSelect-indicator': { color: '#94a3b8' },
+};
+
+const darkSelectListboxSx = {
+    backgroundColor: '#0f172a',
+    color: '#e2e8f0',
+    borderColor: 'rgba(71, 85, 105, 0.8)',
+    '& .MuiOption-root': {
+        color: '#e2e8f0',
+        '&:hover': {
+            backgroundColor: 'rgba(99, 102, 241, 0.2)',
+        },
+        '&[aria-selected="true"]': {
+            backgroundColor: 'rgba(99, 102, 241, 0.3)',
+            color: '#fff',
+        },
+        '&.Mui-disabled': {
+            color: '#64748b',
+            fontWeight: 600,
+            fontSize: '0.7rem',
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em',
+            opacity: 1,
+        },
+    },
+};
+
+const darkSliderSx = {
+    '--Slider-trackBackground': 'linear-gradient(90deg, #a855f7, #6366f1)',
+    '--Slider-railBackground': 'rgba(71, 85, 105, 0.6)',
+    '--Slider-thumbBackground': '#fff',
+    '& .MuiSlider-mark': { backgroundColor: 'rgba(148, 163, 184, 0.6)' },
+    '& .MuiSlider-markLabel': { color: '#94a3b8', fontSize: '0.7rem' },
+    '& .MuiSlider-valueLabel': {
+        backgroundColor: '#1e293b',
+        color: '#fff',
+        border: '1px solid rgba(99, 102, 241, 0.5)',
+    },
+};
 
 export const Form = (props: IFormProps): JSX.Element => {
     const modelsQuery = trpc.tts.getModelsList.useQuery();
@@ -96,11 +173,11 @@ export const Form = (props: IFormProps): JSX.Element => {
     }, [selectedLanguage, selectedModel, text, selectedSteps, selectedVoiceStyle])
 
     if (modelsQuery.isPending) {
-        return <p>Loading...</p>
+        return <p className="text-slate-300">Loading models…</p>
     }
 
     if (modelsQuery.isError) {
-        return <p>Error</p>
+        return <p className="text-rose-300">Failed to load models.</p>
     }
 
     const handleLanguageSelect = function (newValue: any): void {
@@ -130,10 +207,10 @@ export const Form = (props: IFormProps): JSX.Element => {
     const maleVoices = SUPERTONIC_VOICES.filter(v => v.gender === 'Male');
     const femaleVoices = SUPERTONIC_VOICES.filter(v => v.gender === 'Female');
 
-    return <form onSubmit={handleFormSubmit} className="form">
+    return <form onSubmit={handleFormSubmit} className="form studio-form">
         <div className="flex flex-col gap-4 md:flex-row">
             <FormControl className="flex-1">
-                <FormLabel>
+                <FormLabel sx={darkLabelSx}>
                     <IconLanguage />
                     Language
                 </FormLabel>
@@ -146,7 +223,7 @@ export const Form = (props: IFormProps): JSX.Element => {
                 />
             </FormControl>
             <FormControl className="flex-1">
-                <FormLabel >
+                <FormLabel sx={darkLabelSx}>
                     <IconSpeaker />
                     Model
                 </FormLabel>
@@ -162,18 +239,20 @@ export const Form = (props: IFormProps): JSX.Element => {
         </div>
 
         {isSupertonic && (
-            <div className="flex flex-col gap-4 border border-neutral-200 rounded-lg p-4">
-                <div className="flex items-center gap-2 text-sm font-medium text-neutral-600">
+            <div className="flex flex-col gap-4 rounded-xl border border-slate-700 bg-slate-900/50 p-4">
+                <div className="flex items-center gap-2 text-sm font-medium text-slate-300">
                     <IconTune fontSize="small" />
                     Supertonic Settings
                 </div>
                 <div className="flex flex-col gap-4 md:flex-row">
                     <FormControl className="flex-1">
-                        <FormLabel>Voice</FormLabel>
+                        <FormLabel sx={darkLabelSx}>Voice</FormLabel>
                         <Select
                             disabled={props.isPending}
                             value={selectedVoiceStyle}
                             onChange={(_, v) => v && setSelectedVoiceStyle(v)}
+                            sx={darkSelectSx}
+                            slotProps={{ listbox: { sx: darkSelectListboxSx } }}
                         >
                             <Option value="" disabled>Male voices</Option>
                             {maleVoices.map(v => (
@@ -184,10 +263,10 @@ export const Form = (props: IFormProps): JSX.Element => {
                                 <Option key={v.id} value={v.id}>{v.name} ({v.id})</Option>
                             ))}
                         </Select>
-                        <FormHelperText>Speaker voice — M1–M5 are male, F1–F5 are female.</FormHelperText>
+                        <FormHelperText sx={darkHelperSx}>Speaker voice — M1–M5 are male, F1–F5 are female.</FormHelperText>
                     </FormControl>
                     <FormControl className="flex-1">
-                        <FormLabel>Quality: {selectedSteps} steps</FormLabel>
+                        <FormLabel sx={darkLabelSx}>Quality: {selectedSteps} steps</FormLabel>
                         <Slider
                             disabled={props.isPending}
                             aria-label="quality steps"
@@ -198,8 +277,9 @@ export const Form = (props: IFormProps): JSX.Element => {
                             min={MIN_STEPS}
                             max={MAX_STEPS}
                             valueLabelDisplay="auto"
+                            sx={darkSliderSx}
                         />
-                        <FormHelperText>
+                        <FormHelperText sx={darkHelperSx}>
                             Diffusion refinement passes. 5 = fast · 8 = balanced · 12 = best quality.
                         </FormHelperText>
                     </FormControl>
@@ -208,7 +288,7 @@ export const Form = (props: IFormProps): JSX.Element => {
         )}
 
         <FormControl>
-            <FormLabel>
+            <FormLabel sx={darkLabelSx}>
                 <IconText />
                 Text
             </FormLabel>
@@ -220,8 +300,9 @@ export const Form = (props: IFormProps): JSX.Element => {
                 className="w-full"
                 maxRows={12}
                 minRows={6}
+                sx={darkInputSx}
             />
-            <FormHelperText>text can be very long</FormHelperText>
+            <FormHelperText sx={darkHelperSx}>text can be very long</FormHelperText>
         </FormControl>
         {props.player}
         <div className="flex gap-2 self-end">
@@ -231,6 +312,15 @@ export const Form = (props: IFormProps): JSX.Element => {
                     onClick={props.onRead}
                     variant="outlined"
                     className="gap-2"
+                    sx={{
+                        borderColor: 'rgba(71, 85, 105, 0.8)',
+                        color: '#cbd5e1',
+                        '&:hover': {
+                            backgroundColor: 'rgba(51, 65, 85, 0.5)',
+                            borderColor: '#818cf8',
+                            color: '#fff',
+                        },
+                    }}
                 >
                     <IconRead />
                     Read
@@ -241,6 +331,18 @@ export const Form = (props: IFormProps): JSX.Element => {
                 loading={props.isPending}
                 type="submit"
                 className="gap-2"
+                sx={{
+                    background: 'linear-gradient(90deg, #6366f1, #8b5cf6)',
+                    color: '#fff',
+                    fontWeight: 500,
+                    '&:hover': {
+                        background: 'linear-gradient(90deg, #818cf8, #a78bfa)',
+                    },
+                    '&.Mui-disabled': {
+                        background: 'rgba(99, 102, 241, 0.4)',
+                        color: 'rgba(255, 255, 255, 0.7)',
+                    },
+                }}
             >
                 {props.isPending ? <LoadingIcon /> : <GenerateIcon />}
                 {props.isPending ? 'Generating' : 'Synthesize'}
