@@ -1,6 +1,6 @@
 # Studio redesign: rename /app → /studio + dark theme
 
-**Status:** in-progress
+**Status:** done (merged into main)
 **Created:** 2026-05-23
 **Worktree:** `.claude/worktrees/agent-a13130573bb013b1b` (branch: `worktree-agent-a13130573bb013b1b`)
 **Integration target:** `main`
