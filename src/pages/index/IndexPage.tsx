@@ -1,12 +1,11 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { fetchUntilFirstByte } from "../../utils/fetchUntilFirstByte";
 import { Form } from "./components/Form";
 import { RequestState } from "./components/consts/RequestState";
 import { Player } from "./components/Player";
 import qs from 'qs';
 import { FormType } from "./FormType";
-import { trpc } from "../../api";
 
 const appName = (import.meta.env.VITE_APP_TITLE as string | undefined) ?? "Text To Speech";
 
@@ -25,9 +24,6 @@ const Nav = () => (
 );
 
 export const IndexPage = (): JSX.Element => {
-    const navigate = useNavigate();
-    const shareContentMutation = trpc.tts.shareContent.useMutation();
-
     const [state, setState] = useState<RequestState | undefined>();
     const [url, setUrl] = useState<string>();
     const [formState, setFormState] = useState<FormType>();
@@ -43,32 +39,6 @@ export const IndexPage = (): JSX.Element => {
             setState(RequestState.FAILED);
         }
         setState(RequestState.SUCCESS);
-    };
-
-    const handleRead = async function (): Promise<void> {
-        if (!formState?.text?.trim()) {
-            navigate('/reader');
-            return;
-        }
-
-        if (!formState?.language || !formState?.model) {
-            return;
-        }
-
-        try {
-            const result = await shareContentMutation.mutateAsync({
-                content: formState.text,
-                language: formState.language,
-                model: formState.model,
-                speed: 1.0, // Default speed for IndexPage
-                steps: formState.steps,
-                voiceStyle: formState.voiceStyle,
-            });
-
-            navigate(`/reader/${result.shareId}`);
-        } catch (error) {
-            console.error('Failed to save content for reading:', error);
-        }
     };
 
     function handleStateChange(params: FormType): void {
@@ -110,10 +80,8 @@ export const IndexPage = (): JSX.Element => {
                             <Form
                                 player={state === RequestState.SUCCESS && <Player url={url} />}
                                 isPending={state === RequestState.PENDING}
-                                isSharePending={shareContentMutation.isPending}
                                 onFormChange={handleStateChange}
                                 onSubmit={handleFormSubmit}
-                                onRead={handleRead}
                             />
                         </div>
                     </div>

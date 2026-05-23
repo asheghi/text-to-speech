@@ -8,7 +8,6 @@ import LoadingIcon from '@mui/icons-material/RecordVoiceOver';
 import IconSpeaker from '@mui/icons-material/RecordVoiceOverOutlined'
 import IconLanguage from '@mui/icons-material/LanguageOutlined'
 import IconText from '@mui/icons-material/ArticleOutlined'
-import IconRead from '@mui/icons-material/MenuBookOutlined'
 import IconTune from '@mui/icons-material/TuneOutlined'
 
 import "./Form.scss"
@@ -24,9 +23,7 @@ import {
 interface IFormProps {
     onFormChange: (params: FormType) => void;
     isPending: boolean;
-    isSharePending: boolean;
     onSubmit: () => void;
-    onRead?: () => void;
     player: React.ReactNode;
 }
 
@@ -306,26 +303,6 @@ export const Form = (props: IFormProps): JSX.Element => {
         </FormControl>
         {props.player}
         <div className="flex gap-2 self-end">
-            {props.onRead && (
-                <Button
-                    disabled={props.isSharePending}
-                    onClick={props.onRead}
-                    variant="outlined"
-                    className="gap-2"
-                    sx={{
-                        borderColor: 'rgba(71, 85, 105, 0.8)',
-                        color: '#cbd5e1',
-                        '&:hover': {
-                            backgroundColor: 'rgba(51, 65, 85, 0.5)',
-                            borderColor: '#818cf8',
-                            color: '#fff',
-                        },
-                    }}
-                >
-                    <IconRead />
-                    Read
-                </Button>
-            )}
             <Button
                 disabled={props.isPending}
                 loading={props.isPending}
