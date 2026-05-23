@@ -1,4 +1,4 @@
-.form{
+.form {
     @apply flex flex-col gap-4;
 
     .form-group {
@@ -8,6 +8,20 @@
             @apply capitalize font-bold opacity-75 min-w-[80px] sm:text-right pt-1;
         }
     }
+}
 
-   
+// Dark-theme audio player on the studio page.
+.studio-audio {
+    color-scheme: dark;
+    border-radius: 0.5rem;
+    background-color: rgba(15, 23, 42, 0.8);
+}
+
+.studio-audio::-webkit-media-controls-panel {
+    background-color: rgba(30, 41, 59, 0.95);
+}
+
+.studio-audio::-webkit-media-controls-current-time-display,
+.studio-audio::-webkit-media-controls-time-remaining-display {
+    color: #e2e8f0;
 }

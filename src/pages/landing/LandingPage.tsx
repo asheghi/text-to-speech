@@ -56,11 +56,11 @@ const Nav = () => (
             {appName}
         </Link>
         <div className="flex items-center gap-2 md:gap-6 text-sm">
-            <Link to="/app" className="text-slate-300 hover:text-white transition-colors hidden sm:inline">App</Link>
+            <Link to="/studio" className="text-slate-300 hover:text-white transition-colors hidden sm:inline">App</Link>
             <Link to="/reader" className="text-slate-300 hover:text-white transition-colors hidden sm:inline">Reader</Link>
             <Link to="/docs" className="text-slate-300 hover:text-white transition-colors">Docs</Link>
             <Link
-                to="/app"
+                to="/studio"
                 className="ml-2 px-4 py-2 rounded-md bg-white text-slate-900 font-medium hover:bg-slate-100 transition-colors"
             >
                 Open app
@@ -100,7 +100,7 @@ export const LandingPage = (): JSX.Element => {
                         </p>
                         <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3">
                             <Link
-                                to="/app"
+                                to="/studio"
                                 className="px-6 py-3 rounded-md bg-white text-slate-900 font-medium hover:bg-slate-100 transition-colors w-full sm:w-auto"
                             >
                                 Try it now
@@ -162,7 +162,7 @@ export const LandingPage = (): JSX.Element => {
                                 Full API reference
                             </Link>
                             <Link
-                                to="/app"
+                                to="/studio"
                                 className="px-5 py-2.5 rounded-md border border-slate-300 text-slate-700 font-medium hover:bg-white transition-colors"
                             >
                                 Open the app
@@ -191,7 +191,7 @@ export const LandingPage = (): JSX.Element => {
                         {appName}
                     </div>
                     <nav className="flex items-center gap-6 text-sm text-slate-600">
-                        <Link to="/app" className="hover:text-slate-900 transition-colors">App</Link>
+                        <Link to="/studio" className="hover:text-slate-900 transition-colors">App</Link>
                         <Link to="/docs" className="hover:text-slate-900 transition-colors">Docs</Link>
                         <Link to="/reader" className="hover:text-slate-900 transition-colors">Reader</Link>
                         <Link to="/status" className="hover:text-slate-900 transition-colors">Status</Link>

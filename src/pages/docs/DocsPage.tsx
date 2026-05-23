@@ -51,12 +51,12 @@ const Nav = () => (
                 {appName}
             </Link>
             <nav className="flex items-center gap-2 md:gap-6 text-sm">
-                <Link to="/app" className="text-slate-600 hover:text-slate-900 transition-colors">App</Link>
+                <Link to="/studio" className="text-slate-600 hover:text-slate-900 transition-colors">App</Link>
                 <Link to="/reader" className="text-slate-600 hover:text-slate-900 transition-colors hidden sm:inline">Reader</Link>
                 <Link to="/status" className="text-slate-600 hover:text-slate-900 transition-colors hidden sm:inline">Status</Link>
                 <Link to="/docs" className="text-slate-900 font-medium">Docs</Link>
                 <Link
-                    to="/app"
+                    to="/studio"
                     className="ml-2 px-4 py-2 rounded-md bg-slate-900 text-white font-medium hover:bg-slate-800 transition-colors"
                 >
                     Open app
@@ -404,7 +404,7 @@ type ModelType = {
                             </div>
                             <div className="flex gap-2">
                                 <Link
-                                    to="/app"
+                                    to="/studio"
                                     className="px-5 py-2.5 rounded-md bg-slate-900 text-white font-medium hover:bg-slate-800 transition-colors"
                                 >
                                     Open app
