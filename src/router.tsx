@@ -6,13 +6,29 @@ import { IndexPage } from './pages/index/IndexPage';
 // todo lazy loading pages
 import ReaderPage from './pages/reader/ReaderPage';
 import StatusPage from './pages/status/StatusPage';
+import LandingPage from './pages/landing/LandingPage';
+import DocsPage from './pages/docs/DocsPage';
 
 export const router = createBrowserRouter([
   {
-    path: "/",
+    path: '/',
+    element: <LandingPage />,
+    errorElement: <ErrorPage />,
+  },
+  {
+    path: '/docs',
+    element: <DocsPage />,
+    errorElement: <ErrorPage />,
+  },
+  {
+    path: '/',
     element: <RootLayout />,
     errorElement: <ErrorPage />,
     children: [
+      {
+        path: 'app',
+        element: <IndexPage />,
+      },
       {
         path: 'reader',
         element: <ReaderPage />,
@@ -20,10 +36,6 @@ export const router = createBrowserRouter([
       {
         path: 'reader/:shareId',
         element: <ReaderPage />,
-      },
-      {
-        path: '',
-        element: <IndexPage />,
       },
       {
         path: 'status',
