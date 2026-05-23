@@ -23,17 +23,33 @@ const Nav = () => (
     </nav>
 );
 
+export type SynthStats = {
+    generationMs: number;
+    wordCount: number;
+    charCount: number;
+};
+
 export const IndexPage = (): JSX.Element => {
     const [state, setState] = useState<RequestState | undefined>();
     const [url, setUrl] = useState<string>();
     const [formState, setFormState] = useState<FormType>();
+    const [synthStats, setSynthStats] = useState<SynthStats | undefined>();
 
     const handleFormSubmit = async function (): Promise<void> {
         const query = qs.stringify(formState)
         const url = "/api/tts.wav?" + query;
         setState(RequestState.PENDING);
+        setSynthStats(undefined);
+        const t0 = performance.now();
         try {
             await fetchUntilFirstByte(url);
+            const generationMs = Math.round(performance.now() - t0);
+            const trimmed = formState?.text?.trim() ?? '';
+            setSynthStats({
+                generationMs,
+                wordCount: trimmed ? trimmed.split(/\s+/).length : 0,
+                charCount: trimmed.length,
+            });
             setUrl(url);
         } catch (error) {
             setState(RequestState.FAILED);
@@ -78,7 +94,7 @@ export const IndexPage = (): JSX.Element => {
                     <div className="max-w-3xl mx-auto">
                         <div className="rounded-2xl bg-slate-800/60 backdrop-blur border border-slate-700 p-6 md:p-8 shadow-2xl">
                             <Form
-                                player={state === RequestState.SUCCESS && <Player url={url} />}
+                                player={state === RequestState.SUCCESS && <Player url={url} stats={synthStats} />}
                                 isPending={state === RequestState.PENDING}
                                 onFormChange={handleStateChange}
                                 onSubmit={handleFormSubmit}
