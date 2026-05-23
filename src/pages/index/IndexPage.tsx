@@ -68,7 +68,7 @@ export const IndexPage = (): JSX.Element => {
     }
 
 
-    return <Page headerTitle={appName} >
+    return <Page headerTitle={appName} backLink="/" >
         <main className="mx-auto container flex flex-col gap-4">
             <Form
                 player={state === RequestState.SUCCESS && <Player url={url} />}
