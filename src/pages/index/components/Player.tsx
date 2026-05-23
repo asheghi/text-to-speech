@@ -69,8 +69,14 @@ export const Player = (props: IPlayerProps) => {
             </div>
 
             {/* stats chips */}
-            {stats.length > 0 && (
-                <div className="flex flex-wrap gap-2">
+            {(stats.length > 0 || props.stats?.cached) && (
+                <div className="flex flex-wrap items-center gap-2">
+                    {props.stats?.cached && (
+                        <div className="flex items-center gap-1.5 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-1">
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                            <span className="text-[11px] font-semibold text-emerald-300 uppercase tracking-wider">Cached</span>
+                        </div>
+                    )}
                     {stats.map(s => (
                         <div
                             key={s.label}

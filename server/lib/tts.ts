@@ -173,7 +173,7 @@ export async function generateSentence(
     speed: number,
     steps: number = DEFAULT_STEPS,
     voiceStyle: VoiceStyleId = DEFAULT_VOICE_STYLE,
-): Promise<string> {
+): Promise<{ filePath: string; cached: boolean }> {
     console.log("[TTS] generate sentence", { text, modelName, steps, voiceStyle });
 
     const custom = findCustomModel(modelName);
@@ -193,14 +193,14 @@ export async function generateSentence(
 
     if (fs.existsSync(filePath)) {
         console.log('[TTS] reading from cache');
-        return filePath;
+        return { filePath, cached: true };
     }
 
     const entry = await getTTS(modelName);
 
     await generateSpeech(entry, text, filePath, speed, clampedSteps, voiceStyle, lang);
 
-    return filePath;
+    return { filePath, cached: false };
 }
 
 async function generateSpeech(

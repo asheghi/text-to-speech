@@ -61,15 +61,16 @@ const handleTTS = async (req: Request, res: Response) => {
         // invalid value silently falls back to default
     }
 
-    let filePath;
+    let filePath: string;
+    let cached: boolean;
     try {
-        filePath = await generateSentence(
+        ({ filePath, cached } = await generateSentence(
             model,
             text,
             speed ? parsedSpeed : 1,
             parsedSteps,
             parsedVoiceStyle,
-        );
+        ));
     } catch (error) {
         console.error(error);
         console.error("failed to generate file");
@@ -90,9 +91,10 @@ const handleTTS = async (req: Request, res: Response) => {
 
     res.writeHead(200, {
         'Content-Type': 'audio/wave',
-        "Content-Length": fileSize,
+        'Content-Length': fileSize,
         'Content-Disposition': `inline; filename="speech.wav"`,
-        'Cache-Control': 'public, max-age=604800'
+        'Cache-Control': 'public, max-age=604800',
+        'X-Cache': cached ? 'HIT' : 'MISS',
     });
 
     const readStream = fs.createReadStream(filePath);

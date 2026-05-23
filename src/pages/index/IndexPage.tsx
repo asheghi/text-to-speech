@@ -27,6 +27,7 @@ export type SynthStats = {
     generationMs: number;
     wordCount: number;
     charCount: number;
+    cached: boolean;
 };
 
 export const IndexPage = (): JSX.Element => {
@@ -42,13 +43,14 @@ export const IndexPage = (): JSX.Element => {
         setSynthStats(undefined);
         const t0 = performance.now();
         try {
-            await fetchUntilFirstByte(url);
+            const { cached } = await fetchUntilFirstByte(url);
             const generationMs = Math.round(performance.now() - t0);
             const trimmed = formState?.text?.trim() ?? '';
             setSynthStats({
                 generationMs,
                 wordCount: trimmed ? trimmed.split(/\s+/).length : 0,
                 charCount: trimmed.length,
+                cached,
             });
             setUrl(url);
         } catch (error) {
