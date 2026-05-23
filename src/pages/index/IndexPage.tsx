@@ -6,18 +6,13 @@ import { RequestState } from "./components/consts/RequestState";
 import { Player } from "./components/Player";
 import qs from 'qs';
 import { FormType } from "./FormType";
-
-const appName = (import.meta.env.VITE_APP_TITLE as string | undefined) ?? "Text To Speech";
+import { Wordmark } from "../../components/Brand/Brand";
 
 const Nav = () => (
     <nav className="w-full px-6 md:px-10 py-5 flex items-center justify-between">
-        <Link to="/" className="text-white font-semibold tracking-tight text-lg flex items-center gap-2">
-            <span className="inline-block w-7 h-7 rounded-md bg-gradient-to-br from-fuchsia-500 to-indigo-500" />
-            {appName}
-        </Link>
+        <Wordmark tone="light" />
         <div className="flex items-center gap-2 md:gap-6 text-sm">
             <Link to="/" className="text-slate-300 hover:text-white transition-colors hidden sm:inline">Home</Link>
-            <Link to="/reader" className="text-slate-300 hover:text-white transition-colors hidden sm:inline">Reader</Link>
             <Link to="/docs" className="text-slate-300 hover:text-white transition-colors">Docs</Link>
         </div>
     </nav>

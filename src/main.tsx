@@ -7,8 +7,8 @@ import {
 import './index.scss'
 import TrpcWrapper from './TrpcWrapper';
 import { router } from './router';
-import packageInfo from '../package.json'
 import '@fontsource/inter';
+import { APP_NAME } from './components/Brand/Brand';
 
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -19,4 +19,4 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   </React.StrictMode>,
 )
 
-document.title = import.meta.env.VITE_APP_TITLE ?? packageInfo.name
+document.title = APP_NAME

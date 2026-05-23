@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
-
-const appName = (import.meta.env.VITE_APP_TITLE as string | undefined) ?? "Text To Speech";
+import { APP_NAME as appName, Wordmark } from "../../components/Brand/Brand";
 
 type ParamRow = {
     name: string;
@@ -46,20 +45,16 @@ const httpParams: ParamRow[] = [
 const Nav = () => (
     <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/80 backdrop-blur">
         <div className="px-6 md:px-10 py-4 flex items-center justify-between max-w-7xl mx-auto">
-            <Link to="/" className="font-semibold tracking-tight text-slate-900 flex items-center gap-2">
-                <span className="inline-block w-7 h-7 rounded-md bg-gradient-to-br from-fuchsia-500 to-indigo-500" />
-                {appName}
-            </Link>
+            <Wordmark tone="dark" />
             <nav className="flex items-center gap-2 md:gap-6 text-sm">
-                <Link to="/studio" className="text-slate-600 hover:text-slate-900 transition-colors">App</Link>
-                <Link to="/reader" className="text-slate-600 hover:text-slate-900 transition-colors hidden sm:inline">Reader</Link>
+                <Link to="/studio" className="text-slate-600 hover:text-slate-900 transition-colors">Studio</Link>
                 <Link to="/status" className="text-slate-600 hover:text-slate-900 transition-colors hidden sm:inline">Status</Link>
                 <Link to="/docs" className="text-slate-900 font-medium">Docs</Link>
                 <Link
                     to="/studio"
                     className="ml-2 px-4 py-2 rounded-md bg-slate-900 text-white font-medium hover:bg-slate-800 transition-colors"
                 >
-                    Open app
+                    Open Studio
                 </Link>
             </nav>
         </div>

@@ -1,11 +1,10 @@
 import { Link } from "react-router-dom";
-
-const appName = (import.meta.env.VITE_APP_TITLE as string | undefined) ?? "Text To Speech";
+import { APP_NAME, Wordmark, LogoMark } from "../../components/Brand/Brand";
 
 const features = [
     {
-        title: "Multiple voices & languages",
-        body: "30+ languages out of the box and a growing roster of high-quality male and female voices. Mix and match per request.",
+        title: "Voices in 30+ languages",
+        body: "A growing roster of natural-sounding male and female voices. Mix and match per request, fine-tune with a few sliders.",
         icon: (
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-6 h-6">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" />
@@ -14,7 +13,7 @@ const features = [
     },
     {
         title: "Supertonic 3 neural TTS",
-        body: "Built-in support for Supertonic 3 alongside Piper, VITS and Kitten — tune quality vs. latency with a step slider.",
+        body: "Built-in support for Supertonic 3 alongside Piper, VITS and Kitten. Trade quality for latency with a step slider.",
         icon: (
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-6 h-6">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5 9 8.25l4.5 4.5 6.75-6.75M14.25 6h6v6" />
@@ -51,19 +50,15 @@ const curlExample = `curl -G 'http://localhost:8080/api/tts.wav' \\
 
 const Nav = () => (
     <nav className="w-full px-6 md:px-10 py-5 flex items-center justify-between">
-        <Link to="/" className="text-white font-semibold tracking-tight text-lg flex items-center gap-2">
-            <span className="inline-block w-7 h-7 rounded-md bg-gradient-to-br from-fuchsia-500 to-indigo-500" />
-            {appName}
-        </Link>
+        <Wordmark tone="light" />
         <div className="flex items-center gap-2 md:gap-6 text-sm">
-            <Link to="/studio" className="text-slate-300 hover:text-white transition-colors hidden sm:inline">App</Link>
-            <Link to="/reader" className="text-slate-300 hover:text-white transition-colors hidden sm:inline">Reader</Link>
+            <Link to="/studio" className="text-slate-300 hover:text-white transition-colors hidden sm:inline">Studio</Link>
             <Link to="/docs" className="text-slate-300 hover:text-white transition-colors">Docs</Link>
             <Link
                 to="/studio"
                 className="ml-2 px-4 py-2 rounded-md bg-white text-slate-900 font-medium hover:bg-slate-100 transition-colors"
             >
-                Open app
+                Open Studio
             </Link>
         </div>
     </nav>
@@ -82,20 +77,29 @@ export const LandingPage = (): JSX.Element => {
                             "radial-gradient(80% 60% at 20% 10%, rgba(168,85,247,0.35), transparent 60%), radial-gradient(60% 50% at 90% 30%, rgba(56,189,248,0.25), transparent 60%)",
                     }}
                 />
+                <div
+                    className="absolute inset-0 opacity-[0.08] pointer-events-none"
+                    style={{
+                        backgroundImage:
+                            "linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)",
+                        backgroundSize: "48px 48px",
+                    }}
+                />
                 <div className="relative z-10">
                     <Nav />
                     <div className="px-6 md:px-10 pt-12 pb-24 md:pt-20 md:pb-32 max-w-5xl mx-auto text-center">
-                        <span className="inline-block px-3 py-1 rounded-full text-xs font-medium bg-white/10 border border-white/15 text-slate-200 mb-6">
+                        <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-white/10 border border-white/15 text-slate-200 mb-6">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                             Open-source · Self-hostable · Multi-engine
                         </span>
-                        <h1 className="text-4xl md:text-6xl font-semibold tracking-tight leading-tight">
-                            Open-source Text-to-Speech,<br className="hidden md:inline" />{" "}
+                        <h1 className="text-4xl md:text-6xl font-semibold tracking-tight leading-[1.05]">
+                            Give your text{" "}
                             <span className="bg-gradient-to-r from-fuchsia-300 via-pink-300 to-indigo-300 bg-clip-text text-transparent">
-                                ready to self-host.
+                                a voice.
                             </span>
                         </h1>
-                        <p className="mt-6 max-w-2xl mx-auto text-base md:text-lg text-slate-300">
-                            Turn any text into natural-sounding speech with neural voices in 30+ languages.
+                        <p className="mt-6 max-w-2xl mx-auto text-base md:text-lg text-slate-300 leading-relaxed">
+                            {APP_NAME} turns any text into natural-sounding speech with neural voices in 30+ languages.
                             Stream WAV over HTTP, run it in Docker, keep your data on your hardware.
                         </p>
                         <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -103,7 +107,7 @@ export const LandingPage = (): JSX.Element => {
                                 to="/studio"
                                 className="px-6 py-3 rounded-md bg-white text-slate-900 font-medium hover:bg-slate-100 transition-colors w-full sm:w-auto"
                             >
-                                Try it now
+                                Open Studio
                             </Link>
                             <Link
                                 to="/docs"
@@ -119,6 +123,9 @@ export const LandingPage = (): JSX.Element => {
             {/* Features */}
             <section className="px-6 md:px-10 py-20 md:py-28 max-w-6xl mx-auto">
                 <div className="text-center max-w-2xl mx-auto mb-14">
+                    <span className="inline-block text-xs font-semibold uppercase tracking-[0.18em] text-indigo-600 mb-3">
+                        Features
+                    </span>
                     <h2 className="text-3xl md:text-4xl font-semibold tracking-tight">Built for builders</h2>
                     <p className="mt-4 text-slate-600">
                         Everything you need to add high-quality speech to your product, with none of the SaaS lock-in.
@@ -128,9 +135,9 @@ export const LandingPage = (): JSX.Element => {
                     {features.map((f) => (
                         <div
                             key={f.title}
-                            className="rounded-xl border border-slate-200 bg-white p-6 hover:shadow-md hover:-translate-y-0.5 transition-all"
+                            className="group rounded-2xl border border-slate-200 bg-white p-6 hover:shadow-lg hover:shadow-indigo-500/5 hover:-translate-y-0.5 hover:border-indigo-200 transition-all"
                         >
-                            <div className="w-10 h-10 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center mb-4">
+                            <div className="w-10 h-10 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center mb-4 group-hover:bg-indigo-100 transition-colors">
                                 {f.icon}
                             </div>
                             <h3 className="text-base font-semibold text-slate-900">{f.title}</h3>
@@ -144,13 +151,13 @@ export const LandingPage = (): JSX.Element => {
             <section className="px-6 md:px-10 py-20 md:py-24 bg-slate-50 border-y border-slate-200">
                 <div className="max-w-5xl mx-auto grid lg:grid-cols-2 gap-10 items-center">
                     <div>
-                        <span className="inline-block text-xs font-semibold uppercase tracking-wider text-indigo-600 mb-3">
+                        <span className="inline-block text-xs font-semibold uppercase tracking-[0.18em] text-indigo-600 mb-3">
                             Quick start
                         </span>
                         <h2 className="text-3xl md:text-4xl font-semibold tracking-tight">
                             One curl call to a WAV file
                         </h2>
-                        <p className="mt-4 text-slate-600">
+                        <p className="mt-4 text-slate-600 leading-relaxed">
                             The HTTP API exposes a single endpoint that streams a WAV. Pick a model, pass your text,
                             pipe the output anywhere — terminals, browsers, audio pipelines.
                         </p>
@@ -165,7 +172,7 @@ export const LandingPage = (): JSX.Element => {
                                 to="/studio"
                                 className="px-5 py-2.5 rounded-md border border-slate-300 text-slate-700 font-medium hover:bg-white transition-colors"
                             >
-                                Open the app
+                                Open Studio
                             </Link>
                         </div>
                     </div>
@@ -186,14 +193,13 @@ export const LandingPage = (): JSX.Element => {
             {/* Footer */}
             <footer className="px-6 md:px-10 py-12 bg-white">
                 <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-                    <div className="flex items-center gap-2 text-slate-700 font-semibold">
-                        <span className="inline-block w-6 h-6 rounded-md bg-gradient-to-br from-fuchsia-500 to-indigo-500" />
-                        {appName}
+                    <div className="flex items-center gap-2.5 text-slate-700 font-semibold">
+                        <LogoMark size={24} />
+                        {APP_NAME}
                     </div>
                     <nav className="flex items-center gap-6 text-sm text-slate-600">
-                        <Link to="/studio" className="hover:text-slate-900 transition-colors">App</Link>
+                        <Link to="/studio" className="hover:text-slate-900 transition-colors">Studio</Link>
                         <Link to="/docs" className="hover:text-slate-900 transition-colors">Docs</Link>
-                        <Link to="/reader" className="hover:text-slate-900 transition-colors">Reader</Link>
                         <Link to="/status" className="hover:text-slate-900 transition-colors">Status</Link>
                     </nav>
                     <div className="text-xs text-slate-500">
