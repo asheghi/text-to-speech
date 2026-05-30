@@ -33,9 +33,23 @@ const ttsRateLimit = rateLimit({
     max: env.RATE_LIMIT_MAX,
     standardHeaders: true,
     legacyHeaders: false,
-    skip: (req) => isPrivileged(req),
     message: { error: 'Too many requests. Please try again later.' },
 });
+
+// Privileged clients (API_KEY / ALLOWED_IPS) get a separate, generous limiter
+// instead of bypassing rate limiting entirely.
+const privilegedTtsRateLimit = rateLimit({
+    windowMs: env.PRIVILEGED_TTS_RATE_LIMIT_WINDOW_MS,
+    max: env.PRIVILEGED_TTS_RATE_LIMIT_MAX,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: 'Too many requests. Please try again later.' },
+});
+
+// Pick the limiter per request: privileged clients use the generous limiter,
+// everyone else uses the public one.
+const ttsLimiterDispatch = (req: Request, res: Response, next: express.NextFunction) =>
+    isPrivileged(req) ? privilegedTtsRateLimit(req, res, next) : ttsRateLimit(req, res, next);
 
 const trpcRateLimit = rateLimit({
     windowMs: env.TRPC_RATE_LIMIT_WINDOW_MS,
@@ -148,8 +162,8 @@ const handleTTS = async (req: Request, res: Response) => {
         })
     }
 };
-app.all('/api/tts', ttsRateLimit, handleTTS);
-app.all('/api/tts.wav', ttsRateLimit, handleTTS);
+app.all('/api/tts', ttsLimiterDispatch, handleTTS);
+app.all('/api/tts.wav', ttsLimiterDispatch, handleTTS);
 
 
 

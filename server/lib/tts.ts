@@ -148,6 +148,41 @@ async function createTTS(modelName?: string): Promise<TtsEntry> {
 const cache: { [key: string]: TtsEntry } = {};
 
 /**
+ * Promise-based counting semaphore. Caps how many generations run at once.
+ * TTS is CPU-bound so a single global semaphore (not per-model) is appropriate.
+ */
+class Semaphore {
+    private running = 0;
+    private queue: Array<() => void> = [];
+    constructor(private max: number) {}
+    acquire(): Promise<void> {
+        if (this.running < this.max) {
+            this.running++;
+            return Promise.resolve();
+        }
+        return new Promise<void>(resolve => this.queue.push(resolve));
+    }
+    release(): void {
+        const next = this.queue.shift();
+        if (next) {
+            // Hand the slot directly to the next waiter; running stays the same.
+            next();
+        } else {
+            this.running--;
+        }
+    }
+}
+
+const generationSemaphore = new Semaphore(env.MAX_CONCURRENT_GENERATIONS);
+
+/**
+ * In-flight generations keyed by the audio file hash. If two requests for the
+ * same hash arrive before either has produced a cached file, they share one
+ * generation Promise instead of both queueing a redundant generateSpeech call.
+ */
+const inFlight = new Map<string, Promise<void>>();
+
+/**
  * Resolve a model name to the actual directory + cache key. Alias entries
  * point at a source model whose files they share; we want one TTS instance
  * in memory regardless of how many aliases the picker exposes.
@@ -196,9 +231,25 @@ export async function generateSentence(
         return { filePath, cached: true };
     }
 
-    const entry = await getTTS(modelName);
+    // Deduplicate concurrent requests for the same output. The first caller for
+    // a given hash creates the generation Promise; later callers await it too.
+    let pending = inFlight.get(hash);
+    if (!pending) {
+        pending = (async () => {
+            const entry = await getTTS(modelName);
+            await generationSemaphore.acquire();
+            try {
+                await generateSpeech(entry, text, filePath, speed, clampedSteps, voiceStyle, lang);
+            } finally {
+                generationSemaphore.release();
+            }
+        })().finally(() => {
+            inFlight.delete(hash);
+        });
+        inFlight.set(hash, pending);
+    }
 
-    await generateSpeech(entry, text, filePath, speed, clampedSteps, voiceStyle, lang);
+    await pending;
 
     return { filePath, cached: false };
 }

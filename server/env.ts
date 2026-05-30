@@ -28,6 +28,12 @@ export const envSchema = z.object({
     TRPC_RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(15 * 60 * 1000),
     /** max text length (chars) for unauthenticated requests; 0 = no limit */
     PUBLIC_MAX_TEXT_LENGTH: z.coerce.number().int().min(0).default(200),
+    /** max concurrent TTS generations across the whole process (CPU-bound) */
+    MAX_CONCURRENT_GENERATIONS: z.coerce.number().int().positive().default(1),
+    /** max /api/tts requests per window for privileged clients */
+    PRIVILEGED_TTS_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(500),
+    /** privileged /api/tts rate limit window in milliseconds (default 1 hour) */
+    PRIVILEGED_TTS_RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(60 * 60 * 1000),
 });
 
 const validatedEnv = envSchema.parse(process.env);
