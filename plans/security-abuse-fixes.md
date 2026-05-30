@@ -1,6 +1,6 @@
 # Security & abuse-prevention fixes
 
-**Status:** in-progress
+**Status:** done (merged into main)
 **Created:** 2026-05-30
 **Worktree:** .claude/worktrees/security-abuse-fixes (branch: orchestrator/security-abuse-fixes)
 **Integration target:** main
