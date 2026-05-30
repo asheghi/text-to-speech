@@ -1,6 +1,6 @@
 # TTS generation queue + privileged rate limit
 
-**Status:** in-progress
+**Status:** done (merged into main)
 **Created:** 2026-05-30
 **Worktree:** /home/bahman/github/text-to-speech-worktree-tts-queue (branch: orchestrator/tts-queue-privileged-ratelimit)
 **Integration target:** main
@@ -30,7 +30,7 @@ limiter instead of bypassing rate limiting entirely.
 - [x] T2 — tts.ts: Semaphore + dedup map around generateSpeech in generateSentence · _agent: self_
 - [x] T3 — index.ts: privilegedTtsRateLimit + dispatcher, drop skip from ttsRateLimit · _agent: self_
 - [x] T4 — run `bun run build`, fix any new TS errors · _agent: self_
-- [ ] T5 — commit, merge to main, cleanup worktree · _agent: self_
+- [x] T5 — commit, merge to main, cleanup worktree · _agent: self_
 
 ## Decisions
 
