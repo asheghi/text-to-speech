@@ -10,6 +10,7 @@ import type { VoiceStyleId } from './lib/supertonicVoices'
 import fs from 'fs'
 import { env } from './env';
 import { SpaExpressRouter } from './spaExpressRouter';
+import { startCleanupJob } from './lib/cleanup';
 
 
 console.log("Starting server ...");
@@ -36,7 +37,18 @@ const ttsRateLimit = rateLimit({
     message: { error: 'Too many requests. Please try again later.' },
 });
 
+const trpcRateLimit = rateLimit({
+    windowMs: env.TRPC_RATE_LIMIT_WINDOW_MS,
+    max: env.TRPC_RATE_LIMIT_MAX,
+    standardHeaders: true,
+    legacyHeaders: false,
+    skip: (req) => isPrivileged(req),
+    message: { error: 'Too many requests. Please try again later.' },
+});
+
 app.use('/api/trpc', cors())
+
+app.use('/api/trpc', trpcRateLimit)
 
 app.use(
     '/api/trpc',
@@ -147,4 +159,5 @@ app.use(SpaExpressRouter('dist'));
 
 app.listen(env.PORT, '0.0.0.0', () => {
     console.log("Server is listening on http://localhost:" + env.PORT + " 🚀");
+    startCleanupJob();
 })

@@ -22,6 +22,10 @@ export const envSchema = z.object({
     RATE_LIMIT_MAX: z.coerce.number().int().positive().default(20),
     /** rate limit window in milliseconds */
     RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(60 * 60 * 1000),
+    /** max requests per window for unauthenticated clients on /api/trpc */
+    TRPC_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(30),
+    /** tRPC rate limit window in milliseconds (default 15 minutes) */
+    TRPC_RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(15 * 60 * 1000),
     /** max text length (chars) for unauthenticated requests; 0 = no limit */
     PUBLIC_MAX_TEXT_LENGTH: z.coerce.number().int().min(0).default(200),
 });
