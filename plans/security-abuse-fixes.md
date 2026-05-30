@@ -31,7 +31,7 @@ Success: server starts cleanly, normal usage (load, TTS, share) still works, bui
 - [x] T4 — Cap `content` (.max 100000) + validate speed/steps/voiceStyle in `shareContent` input schema · _agent: self_
 - [x] T5 — Add periodic cleanup job (startup + 24h interval): shares >30d, audio >7d, with logging · _agent: self_
 - [x] T6 — Run gate (build), verify server boots with PORT=3122 · _agent: self_
-- [ ] T7 — web-tester verification at http://localhost:3000 (load, TTS, share) · _agent: web-tester_
+- [x] T7 — Web verification (load, real TTS, share roundtrip) — done via HTTP probes (web-tester agent not spawnable from sub-agent) · _agent: self_
 
 ## Decisions
 
@@ -48,3 +48,6 @@ Success: server starts cleanly, normal usage (load, TTS, share) still works, bui
 - 2026-05-30 — Plan created. Project intake done: clean tree, target=main, gate=`bun run build`.
 - 2026-05-30 — Implemented T1–T5: nanoid regex + TRPCError NOT_FOUND in getSharedContent; TRPC_RATE_LIMIT env vars; trpcRateLimit middleware on /api/trpc; shareContent input caps (content<=100000, speed 0.1–5, steps 2–16, voiceStyle [MF][1-5]); new server/lib/cleanup.ts wired into startup.
 - 2026-05-30 — Gate passed: `bun run build` (tsc typecheck + vite build) green. Server boots on PORT=3199, cleanup logs at startup. Probed API: traversal -> NOT_FOUND, oversized content -> BAD_REQUEST/too_big. T6 done.
+- 2026-05-30 — Made vite proxy target + dev port env-configurable (VITE_API_PROXY_TARGET, VITE_DEV_PORT) to run an isolated dev pair alongside another session occupying 3000/3122. Backwards-compatible defaults (3000, localhost:3122) unchanged.
+- 2026-05-30 — Web verification PASS via isolated dev pair (frontend 3010 -> backend 3133, MODELS_DIR/AUDIO_DIR pointed at main checkout's data). Results: GET / -> 200; getModelsList -> 665 models; real TTS (kitten-nano model) -> 200 + 165KB valid WAV; shareContent wrote id, getSharedContent restored all fields, /reader/:id -> 200; invalid voiceStyle 'Z9' -> BAD_REQUEST. No regressions. web-tester agent could not be spawned (running as sub-agent); verified by equivalent HTTP probes instead.
+- 2026-05-30 — Dev servers stopped, node_modules symlink (temporary, gitignored) removed.
