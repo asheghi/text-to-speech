@@ -30,7 +30,6 @@
     "express": "^4.19.2",
     "express-rate-limit": "^8.5.2",
     "lame": "^1.2.4",
-    "mongoose": "^8.4.0",
     "nanoid": "^5.1.5",
     "onnxruntime-node": "^1.26.0",
     "qs": "^6.12.2",

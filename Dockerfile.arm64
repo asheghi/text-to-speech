@@ -1,0 +1,20 @@
+FROM oven/bun:debian
+
+RUN apt-get update
+
+RUN apt-get install -y bzip2
+
+WORKDIR /app
+
+COPY bun.lockb .
+COPY package.json .
+
+RUN bun install --frozen-lockfile
+
+COPY . .
+
+RUN bun run build
+
+RUN chmod +x dockerEntryPoint.arm64.sh
+
+ENTRYPOINT ["./dockerEntryPoint.arm64.sh"]
