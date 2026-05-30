@@ -3,6 +3,7 @@ import * as trpcExpress from '@trpc/server/adapters/express';
 import { createContext } from './trpc';
 import { appRouter } from './router';
 import cors from 'cors'
+import rateLimit from 'express-rate-limit'
 import { generateSentence, DEFAULT_STEPS, MIN_STEPS, MAX_STEPS, DEFAULT_VOICE_STYLE } from './lib/tts'
 import { SUPERTONIC_VOICE_IDS } from './lib/supertonicVoices'
 import type { VoiceStyleId } from './lib/supertonicVoices'
@@ -15,7 +16,25 @@ console.log("Starting server ...");
 
 const app = express();
 
+const allowedIps = new Set(
+    (env.ALLOWED_IPS ?? '').split(',').map(s => s.trim()).filter(Boolean)
+);
 
+const isPrivileged = (req: Request): boolean => {
+    if (env.API_KEY && req.headers['x-api-key'] === env.API_KEY) return true;
+    const ip = req.ip ?? '';
+    if (allowedIps.has(ip)) return true;
+    return false;
+};
+
+const ttsRateLimit = rateLimit({
+    windowMs: env.RATE_LIMIT_WINDOW_MS,
+    max: env.RATE_LIMIT_MAX,
+    standardHeaders: true,
+    legacyHeaders: false,
+    skip: (req) => isPrivileged(req),
+    message: { error: 'Too many requests. Please try again later.' },
+});
 
 app.use('/api/trpc', cors())
 
@@ -37,6 +56,10 @@ const handleTTS = async (req: Request, res: Response) => {
 
     if (typeof text !== 'string' || typeof model !== 'string') {
         return res.status(400).send('Invalid parameters.');
+    }
+
+    if (env.PUBLIC_MAX_TEXT_LENGTH > 0 && !isPrivileged(req) && text.length > env.PUBLIC_MAX_TEXT_LENGTH) {
+        return res.status(413).send(`Text too long. Public requests are limited to ${env.PUBLIC_MAX_TEXT_LENGTH} characters.`);
     }
 
     const parsedSpeed = parseFloat(speed as string);
@@ -113,8 +136,8 @@ const handleTTS = async (req: Request, res: Response) => {
         })
     }
 };
-app.all('/api/tts', handleTTS);
-app.all('/api/tts.wav', handleTTS);
+app.all('/api/tts', ttsRateLimit, handleTTS);
+app.all('/api/tts.wav', ttsRateLimit, handleTTS);
 
 
 

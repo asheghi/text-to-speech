@@ -8,8 +8,10 @@
 
 import fs from 'fs';
 import path from 'path';
+import os from 'node:os';
 import * as ort from 'onnxruntime-node';
 import type { VoiceStyleId } from './supertonicVoices';
+import { env } from '../env';
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 
@@ -386,7 +388,15 @@ export async function loadSupertonicTTS(modelDir: string): Promise<SupertonicTTS
     }
     const textProcessor = new UnicodeProcessor(unicodeIndexerPath);
 
-    const sessionOpts: ort.InferenceSession.SessionOptions = { executionProviders: ['cpu'] };
+    const threadCount = env.THREAD_COUNT ?? os.cpus().length;
+    const sessionOpts: ort.InferenceSession.SessionOptions = {
+        executionProviders: ['cpu'],
+        intraOpNumThreads: threadCount,
+        interOpNumThreads: 1,
+        executionMode: 'sequential',
+        graphOptimizationLevel: 'all',
+    };
+    console.log(`[Supertonic] ONNX session opts: intraOp=${threadCount}, interOp=1, sequential, graph=all`);
 
     console.log('[Supertonic] loading ONNX sessions (parallel)...');
     const [dpOrt, textEncOrt, vectorEstOrt, vocoderOrt] = await Promise.all([

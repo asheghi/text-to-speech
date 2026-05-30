@@ -64,6 +64,14 @@ const Nav = () => (
 const sidebarSections: Array<{ id: string; label: string; sub?: Array<{ id: string; label: string }> }> = [
     { id: "overview", label: "Overview" },
     {
+        id: "auth",
+        label: "Auth & Rate Limits",
+        sub: [
+            { id: "auth-privileged", label: "Privileged access" },
+            { id: "auth-public", label: "Public limits" },
+        ],
+    },
+    {
         id: "http-api",
         label: "HTTP API",
         sub: [
@@ -180,8 +188,104 @@ export const DocsPage = (): JSX.Element => {
                             </div>
                             <div className="rounded-lg border border-slate-200 p-4">
                                 <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Auth</div>
-                                <div className="text-sm text-slate-700">None — designed for trusted networks.</div>
+                                <div className="text-sm text-slate-700"><code className="px-1 py-0.5 rounded bg-slate-100 text-slate-800 text-xs">X-Api-Key</code> header for privileged access; rate-limited otherwise.</div>
                             </div>
+                        </div>
+                    </section>
+
+                    {/* Auth & Rate Limits */}
+                    <section className="space-y-8">
+                        <SectionHeading id="auth" eyebrow="Security">
+                            Authentication &amp; Rate Limits
+                        </SectionHeading>
+                        <p className="text-slate-600 leading-relaxed max-w-3xl">
+                            The TTS endpoints apply rate limiting to public callers. Privileged callers — identified
+                            by an API key or a whitelisted IP — bypass all limits. The tRPC endpoints
+                            (model list, storage, sharing) are unrestricted.
+                        </p>
+
+                        {/* Privileged access */}
+                        <div className="space-y-3">
+                            <SubHeading id="auth-privileged">Privileged access</SubHeading>
+                            <p className="text-slate-600 max-w-3xl">
+                                Send the <code className="px-1.5 py-0.5 rounded bg-slate-100 text-sm">X-Api-Key</code> header
+                                with the value configured in the <code className="px-1.5 py-0.5 rounded bg-slate-100 text-sm">API_KEY</code> environment variable.
+                                Requests that match bypass the rate limiter and the text-length cap entirely.
+                                Alternatively, add the caller's IP to <code className="px-1.5 py-0.5 rounded bg-slate-100 text-sm">ALLOWED_IPS</code> (comma-separated).
+                            </p>
+                            <Code language="bash">
+{`# Server-to-server call — no rate limit, no length cap
+curl -G 'https://your-tts-host/api/tts.wav' \\
+  -H 'X-Api-Key: your-secret-token' \\
+  --data-urlencode 'text=Hello world.' \\
+  --data-urlencode 'model=supertonic-3-en' \\
+  --output hello.wav`}
+                            </Code>
+                            <div className="overflow-x-auto rounded-lg border border-slate-200">
+                                <table className="w-full text-sm">
+                                    <thead className="bg-slate-50 text-slate-600">
+                                        <tr>
+                                            <th className="text-left font-semibold px-4 py-2.5">Env var</th>
+                                            <th className="text-left font-semibold px-4 py-2.5">Default</th>
+                                            <th className="text-left font-semibold px-4 py-2.5">Description</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-200">
+                                        <tr className="align-top">
+                                            <td className="px-4 py-3 font-mono text-slate-900 whitespace-nowrap text-xs">API_KEY</td>
+                                            <td className="px-4 py-3 text-slate-500 whitespace-nowrap font-mono text-xs">—</td>
+                                            <td className="px-4 py-3 text-slate-600">Secret token checked against the <code className="px-1 rounded bg-slate-100 text-xs">X-Api-Key</code> request header.</td>
+                                        </tr>
+                                        <tr className="align-top">
+                                            <td className="px-4 py-3 font-mono text-slate-900 whitespace-nowrap text-xs">ALLOWED_IPS</td>
+                                            <td className="px-4 py-3 text-slate-500 whitespace-nowrap font-mono text-xs">—</td>
+                                            <td className="px-4 py-3 text-slate-600">Comma-separated list of client IPs that are always privileged.</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        {/* Public limits */}
+                        <div className="space-y-3">
+                            <SubHeading id="auth-public">Public limits</SubHeading>
+                            <p className="text-slate-600 max-w-3xl">
+                                Callers without a valid key or whitelisted IP are subject to two constraints,
+                                both configurable via environment variables:
+                            </p>
+                            <div className="overflow-x-auto rounded-lg border border-slate-200">
+                                <table className="w-full text-sm">
+                                    <thead className="bg-slate-50 text-slate-600">
+                                        <tr>
+                                            <th className="text-left font-semibold px-4 py-2.5">Env var</th>
+                                            <th className="text-left font-semibold px-4 py-2.5">Default</th>
+                                            <th className="text-left font-semibold px-4 py-2.5">Description</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-200">
+                                        <tr className="align-top">
+                                            <td className="px-4 py-3 font-mono text-slate-900 whitespace-nowrap text-xs">RATE_LIMIT_MAX</td>
+                                            <td className="px-4 py-3 text-slate-500 whitespace-nowrap font-mono text-xs">20</td>
+                                            <td className="px-4 py-3 text-slate-600">Maximum requests per IP per window.</td>
+                                        </tr>
+                                        <tr className="align-top">
+                                            <td className="px-4 py-3 font-mono text-slate-900 whitespace-nowrap text-xs">RATE_LIMIT_WINDOW_MS</td>
+                                            <td className="px-4 py-3 text-slate-500 whitespace-nowrap font-mono text-xs">3600000</td>
+                                            <td className="px-4 py-3 text-slate-600">Window duration in milliseconds (default: 1 hour).</td>
+                                        </tr>
+                                        <tr className="align-top">
+                                            <td className="px-4 py-3 font-mono text-slate-900 whitespace-nowrap text-xs">PUBLIC_MAX_TEXT_LENGTH</td>
+                                            <td className="px-4 py-3 text-slate-500 whitespace-nowrap font-mono text-xs">200</td>
+                                            <td className="px-4 py-3 text-slate-600">Maximum text length in characters. Set to <code className="px-1 rounded bg-slate-100 text-xs">0</code> to disable.</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <p className="text-slate-500 text-sm max-w-3xl">
+                                Rate-limited responses return <code className="px-1.5 py-0.5 rounded bg-slate-100 text-xs">429 Too Many Requests</code>.
+                                Oversized text returns <code className="px-1.5 py-0.5 rounded bg-slate-100 text-xs">413 Content Too Large</code>.
+                                Standard <code className="px-1.5 py-0.5 rounded bg-slate-100 text-xs">RateLimit-*</code> headers are included in every response.
+                            </p>
                         </div>
                     </section>
 
@@ -273,7 +377,8 @@ export const DocsPage = (): JSX.Element => {
                         <div className="space-y-3">
                             <SubHeading id="http-example">Example</SubHeading>
                             <Code language="bash">
-{`curl -G 'http://localhost:8080/api/tts.wav' \\
+{`curl -G 'https://your-tts-host/api/tts.wav' \\
+  -H 'X-Api-Key: your-secret-token' \\
   --data-urlencode 'text=Hello from your self-hosted TTS.' \\
   --data-urlencode 'model=supertonic-3-en' \\
   --data-urlencode 'voiceStyle=F1' \\
