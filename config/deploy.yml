@@ -1,0 +1,75 @@
+# Kamal deploy config for tts.talatala.se
+# Docs: https://kamal-deploy.org
+#
+# Notes specific to this app:
+#   - The VPS (135.181.151.220) is ARM64. Local/CI runners may be x86_64, so we
+#     build natively on the server itself (remote builder) to avoid slow
+#     x86->arm emulation.
+#   - TTS models are NOT baked into the image; they're downloaded on demand to
+#     data/models on first use (can be hundreds of MB). The named volume below
+#     persists models + the audio cache + shared-content JSON across deploys so
+#     a redeploy never re-downloads them.
+#   - The container runs as root, so a *named* volume mounted at /app/data is
+#     writable without any chown dance.
+
+# Name of your application. Used to uniquely configure containers.
+service: tts
+
+# Name of the container image (pushed to ghcr.io/asheghi/text-to-speech).
+image: asheghi/text-to-speech
+
+# Deploy to these servers.
+servers:
+  web:
+    - 135.181.151.220
+
+# SSH connection user.
+ssh:
+  user: root
+
+# Kamal's built-in proxy: terminates TLS via Let's Encrypt and routes to the app.
+proxy:
+  ssl: true
+  host: tts.talatala.se
+  # The Express server listens on PORT=8080 inside the container.
+  app_port: 8080
+  # No dedicated /up endpoint — the SPA router serves 200 on "/".
+  healthcheck:
+    path: /
+    interval: 5
+    timeout: 30
+
+# Container registry (GitHub Container Registry).
+registry:
+  server: ghcr.io
+  username: asheghi
+  # Pulled from .kamal/secrets (never stored here). Locally this is a gh token
+  # with write:packages (`gh auth token`); in CI it's GITHUB_TOKEN.
+  password:
+    - KAMAL_REGISTRY_PASSWORD
+
+# Build natively on the ARM64 server (remote builder) — see header note.
+builder:
+  arch: arm64
+  remote: ssh://root@135.181.151.220
+
+# Environment variables passed to the container.
+env:
+  clear:
+    NODE_ENV: production
+    PORT: "8080"
+    # Data lives under the mounted /app/data volume (paths are relative to the
+    # container's /app workdir). Set explicitly so they're auditable here.
+    MODELS_DIR: data/models
+    AUDIO_DIR: data/audio
+    # Cap public (unauthenticated) request text length. 0 disables the cap.
+    PUBLIC_MAX_TEXT_LENGTH: "200"
+  secret:
+    # Callers sending `X-Api-Key: <API_KEY>` bypass the public text cap and get
+    # the generous privileged rate limit. Omit/leave empty to disable.
+    - API_KEY
+
+# Persist TTS models, the audio cache, and shared-content JSON across deploys.
+# NAMED volume (no leading slash) mounted over the app's data dir.
+volumes:
+  - "tts_data:/app/data"
