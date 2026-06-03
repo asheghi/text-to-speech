@@ -21,7 +21,17 @@ image: asheghi/text-to-speech
 # Deploy to these servers.
 servers:
   web:
-    - 135.181.151.220
+    hosts:
+      - 135.181.151.220
+    # The host's /etc/resolv.conf lists IPv6 DNS servers first, but this
+    # container has no IPv6 route — so Docker's embedded resolver forwards to
+    # unreachable IPv6 nameservers and every external download (model archives
+    # from GitHub, voice files from HuggingFace) fails with SERVFAIL/ECONNREFUSED.
+    # Pin Hetzner's IPv4 recursive resolvers so name resolution works.
+    options:
+      dns:
+        - 185.12.64.1
+        - 185.12.64.2
 
 # SSH connection user.
 ssh:

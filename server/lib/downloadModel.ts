@@ -17,36 +17,48 @@ async function downloadFile(outputDir: string, url: string, override = false) {
 
     const filePath = path.join(outputDir, fileName);
     if (fs.existsSync(filePath)) {
-        if (!override) {
+        // A 0-byte file is the fingerprint of an interrupted/failed prior
+        // download (e.g. a DNS/connection error after the write stream was
+        // created). Treat it as absent so we re-download instead of skipping
+        // forever and then failing to extract a corrupt archive.
+        if (!override && fs.statSync(filePath).size > 0) {
             console.log(`File ${fileName} already exists, skipping download.`);
             return filePath;
         }
-        else {
-            fs.unlinkSync(filePath);
-            console.log(`Overriding existing file ${fileName}.`);
-        }
+        fs.unlinkSync(filePath);
+        console.log(`Removing existing ${override ? '' : 'empty/partial '}file ${fileName} before download.`);
     }
 
     console.log(`Downloading ${url} to ${filePath}`);
 
     const writer = fs.createWriteStream(filePath);
-    const response = await axios({
-        url,
-        method: 'GET',
-        responseType: 'stream'
-    });
+    try {
+        const response = await axios({
+            url,
+            method: 'GET',
+            responseType: 'stream'
+        });
 
-    response.data.on('progress', (progress) => {
-        console.log(`Download progress: ${Math.round(progress.percent * 100)}%`);
-    });
+        response.data.on('progress', (progress) => {
+            console.log(`Download progress: ${Math.round(progress.percent * 100)}%`);
+        });
 
-    response.data.pipe(writer);
+        response.data.pipe(writer);
 
-    await new Promise((resolve, reject) => {
-        writer.on('finish', resolve);
-        writer.on('error', reject);
-    });
-
+        await new Promise((resolve, reject) => {
+            writer.on('finish', resolve);
+            writer.on('error', reject);
+            response.data.on('error', reject);
+        });
+    } catch (error) {
+        // Don't leave a partial/empty file behind — it would be skipped on the
+        // next attempt and poison every subsequent extraction.
+        writer.destroy();
+        if (fs.existsSync(filePath)) {
+            fs.rmSync(filePath, { force: true });
+        }
+        throw error;
+    }
 
     return filePath;
 }
@@ -157,6 +169,11 @@ async function downloadCustomModel(model: CustomModel): Promise<void> {
         await $`tar -xvf ${archivePath} -C ${scratch}`;
     } catch (error) {
         console.error('Error extracting custom model archive:', error);
+        // The archive is corrupt/truncated. Remove it (and the scratch dir) so
+        // the next request re-downloads a fresh copy instead of repeatedly
+        // failing to extract the same bad file.
+        fs.rmSync(archivePath, { force: true });
+        fs.rmSync(scratch, { recursive: true, force: true });
         throw error;
     }
 
