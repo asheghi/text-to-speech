@@ -17,6 +17,13 @@ console.log("Starting server ...");
 
 const app = express();
 
+// Behind kamal-proxy (a single reverse-proxy hop) the client IP arrives in
+// X-Forwarded-For. Without this, express-rate-limit can't read the real client
+// IP (logs ERR_ERL_UNEXPECTED_X_FORWARDED_FOR) and buckets every request under
+// the proxy's socket IP — so all public callers share one limit. Trust exactly
+// one hop so per-IP limiting works and XFF can't be spoofed past the proxy.
+app.set('trust proxy', 1)
+
 const allowedIps = new Set(
     (env.ALLOWED_IPS ?? '').split(',').map(s => s.trim()).filter(Boolean)
 );

@@ -74,6 +74,11 @@ env:
     AUDIO_DIR: data/audio
     # Cap public (unauthenticated) request text length. 0 disables the cap.
     PUBLIC_MAX_TEXT_LENGTH: "200"
+    # Hourly /api/tts ceiling for privileged callers (the talatala app sends a
+    # matching X-Api-Key). All of the app's traffic shares one IP bucket, and a
+    # TTS-heavy learn session bursts well past the 500 default, so 429s broke
+    # audio mid-session. Raise the headroom.
+    PRIVILEGED_TTS_RATE_LIMIT_MAX: "5000"
   secret:
     # Callers sending `X-Api-Key: <API_KEY>` bypass the public text cap and get
     # the generous privileged rate limit. Omit/leave empty to disable.
