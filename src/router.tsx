@@ -8,26 +8,27 @@ import ReaderPage from './pages/reader/ReaderPage';
 import StatusPage from './pages/status/StatusPage';
 import LandingPage from './pages/landing/LandingPage';
 import DocsPage from './pages/docs/DocsPage';
+import { RouteSeo } from './components/Seo/RouteSeo';
 
 export const router = createBrowserRouter([
   {
     path: '/',
-    element: <LandingPage />,
+    element: <RouteSeo><LandingPage /></RouteSeo>,
     errorElement: <ErrorPage />,
   },
   {
     path: '/docs',
-    element: <DocsPage />,
+    element: <RouteSeo><DocsPage /></RouteSeo>,
     errorElement: <ErrorPage />,
   },
   {
     path: '/studio',
-    element: <IndexPage />,
+    element: <RouteSeo><IndexPage /></RouteSeo>,
     errorElement: <ErrorPage />,
   },
   {
     path: '/',
-    element: <RootLayout />,
+    element: <RouteSeo><RootLayout /></RouteSeo>,
     errorElement: <ErrorPage />,
     children: [
       {
@@ -46,6 +47,6 @@ export const router = createBrowserRouter([
   },
   {
     path: "*",
-    element: <PageNotFound />,
+    element: <RouteSeo><PageNotFound /></RouteSeo>,
   },
 ]);

@@ -1,0 +1,17 @@
+{
+  "name": "Tala Text To Speech",
+  "short_name": "Tala Speech",
+  "description": "Self-hosted neural text-to-speech with a browser studio, sentence reader, and WAV API.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "/logo.svg",
+      "sizes": "24x24",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

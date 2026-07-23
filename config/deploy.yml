@@ -68,6 +68,9 @@ env:
   clear:
     NODE_ENV: production
     PORT: "8080"
+    VITE_APP_TITLE: Tala Text To Speech
+    VITE_APP_DESCRIPTION: Self-hosted neural text-to-speech with Supertonic 3, Piper, VITS, Kitten, a browser studio, sentence reader, and WAV API.
+    VITE_APP_URL: https://tts.talatala.se
     # Data lives under the mounted /app/data volume (paths are relative to the
     # container's /app workdir). Set explicitly so they're auditable here.
     MODELS_DIR: data/models

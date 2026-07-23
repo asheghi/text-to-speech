@@ -15,6 +15,7 @@ import { IconButton, Typography, CircularProgress, Alert } from "@mui/joy";
 import { SpeakerModal } from "./components/SpeakerModal";
 import { ShareModal } from "../../components/ShareModal";
 import { trpc } from "../../api";
+import { APP_NAME } from "../../components/Brand/Brand";
 
 function splitToSentences(text: string): SentenceType[] {
     return text
@@ -245,7 +246,7 @@ const ReaderPage = (): JSX.Element => {
         setShareModalOpen(true);
         shareContentMutation.mutate({
             content: text,
-            title: 'Shared Text to Speech',
+            title: `Shared ${APP_NAME}`,
             language,
             model,
             speed,
@@ -263,7 +264,7 @@ const ReaderPage = (): JSX.Element => {
     // Show loading state for shared content
     if (shareId && isLoadingSharedContent) {
         return (
-            <Page headerTitle="Babble Bot" headerEnd={
+            <Page headerTitle={APP_NAME} headerEnd={
                 <IconButton onClick={handleShowSpeakerModal}>
                     <IconSpeaker />
                 </IconButton>
@@ -283,7 +284,7 @@ const ReaderPage = (): JSX.Element => {
     // Show error state for shared content
     if (shareId && sharedContentError) {
         return (
-            <Page headerTitle="Babble Bot" headerEnd={
+            <Page headerTitle={APP_NAME} headerEnd={
                 <IconButton onClick={handleShowSpeakerModal}>
                     <IconSpeaker />
                 </IconButton>
@@ -301,7 +302,7 @@ const ReaderPage = (): JSX.Element => {
     }
 
     return (
-        <Page headerTitle="Babble Bot" headerEnd={
+        <Page headerTitle={APP_NAME} headerEnd={
             <IconButton onClick={handleShowSpeakerModal}>
                 <IconSpeaker />
             </IconButton>

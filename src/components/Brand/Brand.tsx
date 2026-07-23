@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 
-export const APP_NAME = (import.meta.env.VITE_APP_TITLE as string | undefined) ?? "Tala";
+export const APP_NAME = (import.meta.env.VITE_APP_TITLE as string | undefined) ?? "Tala Text To Speech";
 
 type LogoProps = {
     size?: number;

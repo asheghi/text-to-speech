@@ -93,11 +93,14 @@ export const LandingPage = (): JSX.Element => {
                             Open-source · Self-hostable · Multi-engine
                         </span>
                         <h1 className="text-4xl md:text-6xl font-semibold tracking-tight leading-[1.05]">
+                            {APP_NAME}
+                        </h1>
+                        <p className="mt-5 text-2xl md:text-4xl font-semibold tracking-tight leading-tight">
                             Give your text{" "}
                             <span className="bg-gradient-to-r from-fuchsia-300 via-pink-300 to-indigo-300 bg-clip-text text-transparent">
                                 a voice.
                             </span>
-                        </h1>
+                        </p>
                         <p className="mt-6 max-w-2xl mx-auto text-base md:text-lg text-slate-300 leading-relaxed">
                             {APP_NAME} turns any text into natural-sounding speech with neural voices in 30+ languages.
                             Stream WAV over HTTP, run it in Docker, keep your data on your hardware.

@@ -8,7 +8,6 @@ import './index.scss'
 import TrpcWrapper from './TrpcWrapper';
 import { router } from './router';
 import '@fontsource/inter';
-import { APP_NAME } from './components/Brand/Brand';
 
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -18,5 +17,3 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     </TrpcWrapper>
   </React.StrictMode>,
 )
-
-document.title = APP_NAME

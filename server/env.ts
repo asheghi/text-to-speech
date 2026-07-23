@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import * as dotenv from 'dotenv'
+import { DEFAULT_APP_DESCRIPTION, DEFAULT_APP_NAME } from './lib/seo.js';
 
 dotenv.config({
     path: import.meta.resolve("../.env"),
@@ -11,7 +12,9 @@ export const envSchema = z.object({
     THREAD_COUNT: z.coerce.number().int().positive().optional(),
     MODELS_DIR: z.string().default('data/models'),
     AUDIO_DIR: z.string().default('data/audio'),
-    VITE_APP_TITLE: z.string().default('Text to speech'),
+    VITE_APP_TITLE: z.string().default(DEFAULT_APP_NAME),
+    VITE_APP_DESCRIPTION: z.string().default(DEFAULT_APP_DESCRIPTION),
+    VITE_APP_URL: z.preprocess(value => value === '' ? undefined : value, z.string().url().optional()),
     /** skip storing audio files into cache */
     NO_AUDIO_CACHE: z.coerce.boolean().default(false),
     /** secret token that bypasses rate limiting */
