@@ -21,6 +21,19 @@ export type VoiceStyleId = typeof SUPERTONIC_VOICES[number]['id'];
 
 export const SUPERTONIC_VOICE_IDS = SUPERTONIC_VOICES.map(v => v.id) as VoiceStyleId[];
 
+export const SUPERTONIC_EXPRESSION_TAGS = [
+    { tag: '<laugh>',       label: 'Laugh'        },
+    { tag: '<breath>',      label: 'Breath'       },
+    { tag: '<surprise>',    label: 'Surprise'     },
+    { tag: '<sigh>',        label: 'Sigh'         },
+    { tag: '<scream>',      label: 'Scream'       },
+    { tag: '<throatclear>', label: 'Clear throat' },
+    { tag: '<sad>',         label: 'Sad'          },
+    { tag: '<angry>',       label: 'Angry'        },
+    { tag: '<cough>',       label: 'Cough'        },
+    { tag: '<yawn>',        label: 'Yawn'         },
+] as const;
+
 export const DEFAULT_VOICE_STYLE: VoiceStyleId = 'M1';
 export const DEFAULT_STEPS = 8;
 export const MIN_STEPS = 2;

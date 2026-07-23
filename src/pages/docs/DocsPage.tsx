@@ -14,7 +14,7 @@ const httpParams: ParamRow[] = [
         name: "text",
         type: "string",
         required: true,
-        description: "The sentence to synthesize. URL-encode it. The endpoint produces one WAV per call; long input should be split client-side.",
+        description: "The sentence to synthesize. URL-encode it. Supertonic accepts inline expression tags: <laugh>, <breath>, <surprise>, <sigh>, <scream>, <throatclear>, <sad>, <angry>, <cough>, and <yawn>. Tag behavior is experimental and most reliable in English, Japanese, and Korean. The endpoint produces one WAV per call; long input should be split client-side.",
     },
     {
         name: "model",

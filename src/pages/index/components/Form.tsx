@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { FormEvent, FormEventHandler, useCallback, useEffect, useMemo, useState } from "react";
+import { FormEvent, FormEventHandler, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { trpc } from "../../../api"
 import { languageList } from "./consts/languageList";
 import Dropdown from "./Dropdown";
@@ -21,8 +21,10 @@ import {
 } from "@mui/joy";
 import {
     SUPERTONIC_VOICES,
+    SUPERTONIC_EXPRESSION_TAGS,
     DEFAULT_STEPS, MIN_STEPS, MAX_STEPS, DEFAULT_VOICE_STYLE,
 } from '#/lib/supertonicVoices';
+import { insertExpressionTag } from "./insertExpressionTag";
 
 interface IFormProps {
     onFormChange: (params: FormType) => void;
@@ -128,6 +130,7 @@ export const Form = (props: IFormProps): JSX.Element => {
     const [text, setText] = useState<string>(getLocalStorageItem('text'));
     const [selectedSteps, setSelectedSteps] = useState<number>(getLocalStorageItem('steps') ?? DEFAULT_STEPS);
     const [selectedVoiceStyle, setSelectedVoiceStyle] = useState<string>(getLocalStorageItem('voiceStyle') ?? DEFAULT_VOICE_STYLE);
+    const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
     // Detect if selected model is Supertonic
     const selectedModelData = useMemo(
@@ -244,6 +247,20 @@ a.click();`;
         setText(event.target.value);
     }
 
+    function handleExpressionTagInsert(tag: string): void {
+        const textArea = textAreaRef.current;
+        const currentText = text ?? '';
+        const selectionStart = textArea?.selectionStart ?? currentText.length;
+        const selectionEnd = textArea?.selectionEnd ?? selectionStart;
+        const result = insertExpressionTag(currentText, tag, selectionStart, selectionEnd);
+
+        setText(result.text);
+        requestAnimationFrame(() => {
+            textArea?.focus();
+            textArea?.setSelectionRange(result.caret, result.caret);
+        });
+    }
+
     const handleCopy = (key: string, value: string) => {
         navigator.clipboard.writeText(value).then(() => {
             setCopiedKey(key);
@@ -349,8 +366,30 @@ a.click();`;
                 maxRows={12}
                 minRows={6}
                 sx={darkInputSx}
+                slotProps={{ textarea: { ref: textAreaRef } }}
             />
-            <FormHelperText sx={darkHelperSx}>text can be very long</FormHelperText>
+            {isSupertonic && (
+                <div className="mt-2">
+                    <div className="mb-2 flex flex-wrap gap-1.5" aria-label="Supertonic expression tags">
+                        {SUPERTONIC_EXPRESSION_TAGS.map(({ tag, label }) => (
+                            <button
+                                key={tag}
+                                type="button"
+                                disabled={props.isPending}
+                                onClick={() => handleExpressionTagInsert(tag)}
+                                title={`Insert ${tag}`}
+                                className="rounded-full border border-slate-600 bg-slate-800/80 px-2.5 py-1 text-xs text-slate-300 transition-colors hover:border-indigo-400 hover:bg-indigo-500/15 hover:text-indigo-200 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                {label}
+                            </button>
+                        ))}
+                    </div>
+                    <FormHelperText sx={darkHelperSx}>
+                        Expression tags are experimental and work best in English, Japanese, and Korean. The model may ignore or read a tag aloud.
+                    </FormHelperText>
+                </div>
+            )}
+            {!isSupertonic && <FormHelperText sx={darkHelperSx}>Text can be very long.</FormHelperText>}
         </FormControl>
         {props.player}
 
