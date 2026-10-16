@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { normalizeSwedish } from './normalizeSwedish';
 import * as sherpa_onnx from 'sherpa-onnx-node';
 import fs from 'fs'
 import { join, resolve } from 'path';
@@ -215,6 +216,10 @@ export async function generateSentence(
     // Language code for Supertonic. For VITS it's in the cache key but has no
     // effect on generation. Default 'sv' to preserve existing audio cache.
     const lang = custom?.defaultLang ?? 'sv';
+
+    // VITS models carry no defaultLang, so detect Swedish from the model name.
+    const isSwedish = custom?.defaultLang ? custom.defaultLang === 'sv' : /(^|[-_])sv([-_]|$)/i.test(modelName);
+    if (isSwedish) text = normalizeSwedish(text);
 
     // Clamp steps to valid range
     const clampedSteps = Math.max(MIN_STEPS, Math.min(MAX_STEPS, Math.round(steps)));

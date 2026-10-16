@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { preferSupertonic } from '@/lib/preferModels';
 import { FormEvent, FormEventHandler, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { trpc } from "../../../api"
 import { languageList } from "./consts/languageList";
@@ -149,9 +150,9 @@ export const Form = (props: IFormProps): JSX.Element => {
         });
     }, [props, selectedLanguage?.value, selectedModel?.value, text, selectedSteps, selectedVoiceStyle])
 
-    const getModelsForLanguage = useCallback((languageCode: string | undefined | null) => (modelsQuery.data ?? []).filter(model => {
+    const getModelsForLanguage = useCallback((languageCode: string | undefined | null) => preferSupertonic((modelsQuery.data ?? []).filter(model => {
         return model.modelName.toLowerCase().includes(`-${languageCode}-`) || model.modelName.toLowerCase().includes(`-${languageCode}_`);
-    }), [modelsQuery.data]);
+    })), [modelsQuery.data]);
 
     const filteredModels = useMemo(() => {
         if (!modelsQuery.data) return []

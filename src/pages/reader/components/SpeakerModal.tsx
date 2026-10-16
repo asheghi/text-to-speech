@@ -1,3 +1,4 @@
+import { preferSupertonic } from '@/lib/preferModels';
 import {
     Button, Divider, FormControl, FormHelperText, FormLabel,
     Modal, ModalClose, ModalDialog, Slider, Typography, Select, Option,
@@ -39,9 +40,9 @@ export const SpeakerModal = (props: IProps) => {
     const [selectedSteps, setSelectedSteps] = useLocalStorageState('steps', DEFAULT_STEPS)
     const [selectedVoiceStyle, setSelectedVoiceStyle] = useLocalStorageState('voiceStyle', DEFAULT_VOICE_STYLE)
 
-    const getModelsForLanguage = useCallback((languageCode: string | undefined | null) => (modelsQuery.data ?? []).filter(model => {
+    const getModelsForLanguage = useCallback((languageCode: string | undefined | null) => preferSupertonic((modelsQuery.data ?? []).filter(model => {
         return model.modelName.toLowerCase().includes(`-${languageCode}-`) || model.modelName.toLowerCase().includes(`-${languageCode}_`);
-    }), [modelsQuery.data]);
+    })), [modelsQuery.data]);
 
     const filteredModels = useMemo(() => {
         if (!modelsQuery.data) return []
