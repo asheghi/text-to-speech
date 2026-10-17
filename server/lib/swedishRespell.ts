@@ -27,6 +27,15 @@ const ENTRIES: Array<[string, string, string]> = [
     ['lasagne', 'lasanje', '(n|ns|s)?'],
 ];
 
+// Spelling-to-sound patterns Supertonic gets wrong across whole word families.
+// Verified on 4 voices (F1/M1/F3/M3) with the KB-Whisper loop.
+const PATTERNS: Array<[RegExp, string]> = [
+    // "stj" is a sj-sound (stjärna, stjäla, stjälk); Supertonic pronounces the t.
+    [/stj/giu, 'sj'],
+    // Vowel + "gn" is pronounced "ngn" (regn, vagn, lugn, ugn, lögn).
+    [/(?<=[aeiouyåäö])gn/giu, 'ngn'],
+];
+
 const COMPILED = ENTRIES.map(([stem, rep, suffix]) => ({
     re: new RegExp(`(?<![\\p{L}])${stem}(${suffix})(?![\\p{L}])`, 'giu'),
     rep,
@@ -42,6 +51,9 @@ export function respellSwedishForSupertonic(text: string): string {
     let t = text;
     for (const { re, rep } of COMPILED) {
         t = t.replace(re, (m: string, suffix: string) => matchCase(m, rep + suffix.toLowerCase()));
+    }
+    for (const [re, rep] of PATTERNS) {
+        t = t.replace(re, m => matchCase(m, rep));
     }
     const auto = AUTO as Record<string, string>;
     return t.replace(/\p{L}+/gu, w => {
