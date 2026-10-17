@@ -43,7 +43,14 @@ Corpus: about 4,200 everyday sentences from Swedish Wikipedia, with no digits or
 
 Much of what remains is recogniser noise: words written as digits, inconsistent one-off misses.
 
-Still unsolved: keps, regi, geni, deg, norr/norrut, jäst compounds, förser. These need a native-speaker check.
+Still unsolved, with no respelling helping: keps, regi, geni, deg, norr/norrut, jäst compounds, förser. These need a native-speaker check.
+
+**Running it** (needs a venv with CUDA torch, transformers, librosa, soundfile, num2words and requests):
+```
+python -I tools/sv-loop/corpus.py ~/.cache/tts-spike/loop/corpus.txt
+HF_HOME=~/.cache/tts-spike/hf python -I tools/sv-loop/loop.py ~/.cache/tts-spike/loop ~/.cache/tts-spike/loop/corpus.txt 60
+```
+Keep the work directory off `/tmp`: it is RAM-backed on the dev laptop, and a reboot wipes the loop state.
 
 **Limits:**
 - ASR success shows that the right words come through. It says nothing about stress, pitch accent (accent 1/2) or intonation.
