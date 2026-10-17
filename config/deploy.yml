@@ -82,6 +82,10 @@ env:
     # TTS-heavy learn session bursts well past the 500 default, so 429s broke
     # audio mid-session. Raise the headroom.
     PRIVILEGED_TTS_RATE_LIMIT_MAX: "5000"
+    # Public hourly ceiling on *generated* sentences per IP (cache hits are
+    # free). 120 covers a long reader session; generation is serialised
+    # (MAX_CONCURRENT_GENERATIONS=1), so one IP can use at most ~15 min of CPU per hour.
+    RATE_LIMIT_MAX: "120"
   secret:
     # Callers sending `X-Api-Key: <API_KEY>` bypass the public text cap and get
     # the generous privileged rate limit. Omit/leave empty to disable.
