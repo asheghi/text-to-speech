@@ -48,6 +48,19 @@ function yearToSwedish(n: number): string {
     return numberToSwedish(n);
 }
 
+const ORD_SMALL = ['nollte', 'första', 'andra', 'tredje', 'fjärde', 'femte', 'sjätte', 'sjunde', 'åttonde', 'nionde',
+    'tionde', 'elfte', 'tolfte', 'trettonde', 'fjortonde', 'femtonde', 'sextonde', 'sjuttonde', 'artonde', 'nittonde'];
+
+/** 3 -> "tredje", 21 -> "tjugoförsta", 30 -> "trettionde". */
+export function ordinalToSwedish(n: number): string {
+    if (n < 20) return ORD_SMALL[n];
+    if (n < 100) return n % 10 ? TENS[Math.floor(n / 10)] + ORD_SMALL[n % 10] : TENS[n / 10] + 'nde';
+    return numberToSwedish(n) + 'de';
+}
+
+const MONTHS = ['januari', 'februari', 'mars', 'april', 'maj', 'juni', 'juli', 'augusti',
+    'september', 'oktober', 'november', 'december'];
+
 const ABBREVIATIONS: Array<[RegExp, string]> = [
     [/\bt\.\s?ex\./gi, 'till exempel'],
     [/\bbl\.\s?a\./gi, 'bland annat'],
@@ -61,6 +74,8 @@ const ABBREVIATIONS: Array<[RegExp, string]> = [
     [/\bmfl\.|\bm\.\s?fl\./gi, 'med flera'],
     [/\bobs\b\.?/gi, 'observera'],
     [/\bnr\b\.?/gi, 'nummer'],
+    // "kl 14" / "kl. 14": only before a digit, so the word "kl" elsewhere is untouched.
+    [/\bkl\.?(?=\s*\d)/gi, 'klockan'],
 ];
 
 const toInt = (s: string) => parseInt(s.replace(/[\s ]/g, ''), 10);
@@ -82,14 +97,22 @@ export function normalizeSwedish(text: string): string {
     let t = text;
     for (const [re, rep] of ABBREVIATIONS) t = t.replace(re, rep);
 
+    // ISO dates: 2024-05-03 -> "tredje maj tvåtusentjugofyra"
+    t = t.replace(/\b(\d{4})-(0?[1-9]|1[0-2])-(0?[1-9]|[12]\d|3[01])\b/g, (_, y, m, d) =>
+        `${ordinalToSwedish(+d)} ${MONTHS[+m - 1]} ${yearToSwedish(+y)}`);
+    // Day before a month name is an ordinal: "3 maj" -> "tredje maj"
+    t = t.replace(new RegExp(`\\b(0?[1-9]|[12]\\d|3[01])\\.?\\s+(${MONTHS.join('|')})\\b`, 'gi'), (_, d, m) =>
+        `${ordinalToSwedish(+d)} ${m}`);
+    // Written ordinals: 3:e, 1:a, 2:a, 21:a -> tredje, första, andra, tjugoförsta
+    t = t.replace(/\b(\d{1,3}):([ae])\b/g, (_, n) => ordinalToSwedish(+n));
+
     t = t.replace(new RegExp(`(${NUM})\\s?%`, 'g'), (_, n) => `${readNumber(n)} procent`);
-    t = t.replace(new RegExp(`(${NUM})\\s?(?:kr|SEK)\\b\\.?`, 'g'), (_, n) => `${readNumber(n)} kronor`);
+    t = t.replace(new RegExp(`(${NUM})\\s?(?:kr|SEK)\\b`, 'g'), (_, n) => `${readNumber(n)} kronor`);
     t = t.replace(new RegExp(`(${NUM})\\s?(km|kg|cm|mm|m|g)\\b`, 'g'), (_, n, u: string) =>
         `${readNumber(n)} ${({ km: 'kilometer', kg: 'kilo', cm: 'centimeter', mm: 'millimeter', m: 'meter', g: 'gram' } as Record<string, string>)[u]}`);
     // Times (colon only, so "3.50" is not misread): 14:30 -> fjorton och trettio
     t = t.replace(/\b([01]?\d|2[0-3]):([0-5]\d)\b/g, (_, h, m) =>
         `${numberToSwedish(+h)}${+m ? ' och ' + numberToSwedish(+m) : ''}`);
-    // Day-of-month ordinals: "den 3" -> "den tredje" is ambiguous; keep cardinal.
     t = t.replace(/\b(1[1-9]\d{2})\b/g, (_, y) => yearToSwedish(+y));
     t = t.replace(new RegExp(`(^|[^\\w,])(${NUM})(?![\\w])`, 'g'), (_, pre, n) => pre + readNumber(n));
     return t;
