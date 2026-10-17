@@ -1,0 +1,12 @@
+# Workboard runtime data
+/workboard.sqlite
+/workboard.sqlite-wal
+/workboard.sqlite-shm
+/workboard.sqlite-journal
+/workboard.pid
+/workboard.restore.lock
+/workboard.storage.json
+/workboard.storage.json.tmp-*
+/blobs/
+workboard.pid.gate
+workboard.restore.lock.gate
