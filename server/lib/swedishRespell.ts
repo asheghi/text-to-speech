@@ -6,6 +6,10 @@
 // them with KBLab/kb-whisper-medium (see plans/swedish-tts-quality.md).
 // Do not apply to Piper/VITS: espeak-ng phonemizes those correctly already.
 
+// Exact-word entries found by the automated TTS -> STT loop
+// (plans/swedish-tts-quality.md). Keys are lowercase words.
+import AUTO from './swedishRespell.auto.json';
+
 // [stem, replacement, suffix pattern]. The stem matches at a word start and
 // the suffix covers inflections, so "ingenjörerna" is handled by "ingenjör".
 const ENTRIES: Array<[string, string, string]> = [
@@ -39,5 +43,9 @@ export function respellSwedishForSupertonic(text: string): string {
     for (const { re, rep } of COMPILED) {
         t = t.replace(re, (m: string, suffix: string) => matchCase(m, rep + suffix.toLowerCase()));
     }
-    return t;
+    const auto = AUTO as Record<string, string>;
+    return t.replace(/\p{L}+/gu, w => {
+        const rep = auto[w.toLowerCase()];
+        return rep ? matchCase(w, rep) : w;
+    });
 }
