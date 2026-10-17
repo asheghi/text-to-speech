@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { respellSwedishForSupertonic } from './swedishRespell';
 import { normalizeSwedish } from './normalizeSwedish';
 import * as sherpa_onnx from 'sherpa-onnx-node';
 import fs from 'fs'
@@ -220,6 +221,9 @@ export async function generateSentence(
     // VITS models carry no defaultLang, so detect Swedish from the model name.
     const isSwedish = custom?.defaultLang ? custom.defaultLang === 'sv' : /(^|[-_])sv([-_]|$)/i.test(modelName);
     if (isSwedish) text = normalizeSwedish(text);
+    // Supertonic reads raw spelling; respell words that break Swedish spelling rules.
+    const isSupertonic = custom?.family === 'supertonic' || (custom?.aliasOf ? findCustomModel(custom.aliasOf)?.family === 'supertonic' : false);
+    if (isSwedish && isSupertonic) text = respellSwedishForSupertonic(text);
 
     // Clamp steps to valid range
     const clampedSteps = Math.max(MIN_STEPS, Math.min(MAX_STEPS, Math.round(steps)));
