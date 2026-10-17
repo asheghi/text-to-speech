@@ -3,11 +3,11 @@
 // before front vowels, spelled-out loanwords — even where a word breaks them.
 // Each entry rewrites a stem into a spelling Supertonic pronounces correctly.
 // Every entry was verified by synthesising both spellings and transcribing
-// them with KBLab/kb-whisper-medium (see plans/swedish-tts-quality.md).
+// them with KBLab/kb-whisper-medium (see docs/swedish-tts-quality.md).
 // Do not apply to Piper/VITS: espeak-ng phonemizes those correctly already.
 
 // Exact-word entries found by the automated TTS -> STT loop
-// (plans/swedish-tts-quality.md). Keys are lowercase words.
+// (docs/swedish-tts-quality.md). Keys are lowercase words.
 import AUTO from './swedishRespell.auto.json';
 
 // [stem, replacement, suffix pattern]. The stem matches at a word start and

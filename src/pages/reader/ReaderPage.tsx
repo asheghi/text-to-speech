@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Display } from "./components/Display";
 import { Player } from "./components/Player";
-import { SentenceType } from "./types/SentenceType";
+import { splitToSentences } from "./splitToSentences";
 import { getTtsLink } from "./utils/getTtsLink";
 import { fetchUntilFirstByte } from "../../utils/fetchUntilFirstByte";
 import useAudioPlayer from "./hooks/useAudioPlayer";
@@ -16,48 +16,6 @@ import { SpeakerModal } from "./components/SpeakerModal";
 import { ShareModal } from "../../components/ShareModal";
 import { trpc } from "../../api";
 import { APP_NAME } from "../../components/Brand/Brand";
-
-function splitToSentences(text: string): SentenceType[] {
-    return text
-        .split('\n')
-        .map(it => it + '\n')
-        .flatMap(it => {
-            if(it === '\n' || it === " \n") {
-                return [it];
-            }
-            return it
-                .replace(/"([^"]+)"/g, (match, content) => {
-                    if (content.length > 12) {
-                        return `|"${content}"|`;
-                    }
-                    return match;
-                })
-                .replace(/\. (?=(?:[^"]*"[^"]*")*[^"]*$)/g, '.|')
-                .replace(/\.(?=(?:[^"]*"[^"]*")*[^"]*$)/g, '.|')
-                .replace(/:+(?=(?:[^"]*"[^"]*")*[^"]*$)/g, ':|')
-                .replace(/\?(?=(?:[^"]*"[^"]*")*[^"]*$)/g, '?|')
-                .replace(/!(?=(?:[^"]*"[^"]*")*[^"]*$)/g, '!|')
-                .replace(/;(?=(?:[^"]*"[^"]*")*[^"]*$)/g, ';|')
-                .replace(/" ([A-Z])/g, '"|$1')
-                .split("|")
-        })
-        .map((it, index, arr) => {
-            let i = index + 1;
-            let appending = "";
-            while(i < arr.length - 1) {
-                const current = arr[i];
-                if (/[a-zA-Z0-9]/.test(current.trim())){
-                    break;
-                }else{
-                    appending += current;
-                }
-                i++;
-            }
-            return it + appending;
-        })
-        .filter(it => /[a-zA-Z0-9]/.test(it.trim()))
-
-}
 
 const PRELOAD_AHEAD = 5;
 
