@@ -4,7 +4,7 @@ import { createContext } from './trpc';
 import { appRouter } from './router';
 import cors from 'cors'
 import rateLimit from 'express-rate-limit'
-import { generateSentence, DEFAULT_STEPS, MIN_STEPS, MAX_STEPS, DEFAULT_VOICE_STYLE } from './lib/tts'
+import { generateSentence, isSentenceCached, DEFAULT_STEPS, MIN_STEPS, MAX_STEPS, DEFAULT_VOICE_STYLE } from './lib/tts'
 import { SUPERTONIC_VOICE_IDS } from './lib/supertonicVoices'
 import type { VoiceStyleId } from './lib/supertonicVoices'
 import fs from 'fs'
@@ -117,6 +117,16 @@ const handleTTS = async (req: Request, res: Response) => {
         // invalid value silently falls back to default
     }
 
+    // Only count requests that cost a generation. Cached sentences are served
+    // free, so the reader's prefetch + playback of one sentence counts once.
+    if (!isSentenceCached(model, text, speed ? parsedSpeed : 1, parsedSteps, parsedVoiceStyle)) {
+        const allowed = await new Promise<boolean>(resolve => {
+            res.once('finish', () => resolve(false));
+            ttsLimiterDispatch(req, res, () => resolve(true));
+        });
+        if (!allowed) return;
+    }
+
     let filePath: string;
     let cached: boolean;
     try {
@@ -169,8 +179,8 @@ const handleTTS = async (req: Request, res: Response) => {
         })
     }
 };
-app.all('/api/tts', ttsLimiterDispatch, handleTTS);
-app.all('/api/tts.wav', ttsLimiterDispatch, handleTTS);
+app.all('/api/tts', handleTTS);
+app.all('/api/tts.wav', handleTTS);
 
 
 

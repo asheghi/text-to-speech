@@ -59,9 +59,11 @@ function splitToSentences(text: string): SentenceType[] {
 
 }
 
+const PRELOAD_AHEAD = 5;
+
 async function loadSentences(urls: string[]): Promise<void> {
-    for await (const url of urls) {
-        await fetchUntilFirstByte(url);
+    for (const url of urls) {
+        await fetchUntilFirstByte(url).catch(() => undefined);
     }
 }
 
@@ -173,14 +175,10 @@ const ReaderPage = (): JSX.Element => {
         stop,
     } = useAudioPlayer({ autoPlay, delay, sentences, playlist: links, loop: isLoop });
 
-    // preload next 3 sentence
+    // Preload the next sentences in reading order, nearest first. Generation
+    // is slower than playback for Supertonic, so look further ahead than 3.
     useEffect(() => {
-        if (currentTrackIndex >= links.length - 2) {
-            return;
-        }
-        loadSentences([links[currentTrackIndex + 1]]);
-        loadSentences([links[currentTrackIndex + 2]]);
-        loadSentences([links[currentTrackIndex + 3]]);
+        loadSentences(links.slice(currentTrackIndex + 1, currentTrackIndex + 1 + PRELOAD_AHEAD));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentTrackIndex]);
 

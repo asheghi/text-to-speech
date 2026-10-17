@@ -16,7 +16,8 @@ export const envSchema = z.object({
     VITE_APP_DESCRIPTION: z.string().default(DEFAULT_APP_DESCRIPTION),
     VITE_APP_URL: z.preprocess(value => value === '' ? undefined : value, z.string().url().optional()),
     /** skip storing audio files into cache */
-    NO_AUDIO_CACHE: z.coerce.boolean().default(false),
+    // z.coerce.boolean() would turn the string "false" into true.
+    NO_AUDIO_CACHE: z.string().optional().transform(v => v === 'true' || v === '1'),
     /** secret token that bypasses rate limiting */
     API_KEY: z.string().optional(),
     /** comma-separated IPs that bypass rate limiting */

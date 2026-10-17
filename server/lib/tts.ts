@@ -204,15 +204,17 @@ async function getTTS(modelName: string) {
 }
 
 
-export async function generateSentence(
+/**
+ * Compute the synthesis text (after Swedish normalisation/respelling), the
+ * clamped params and the audio-cache path for one sentence, without generating.
+ */
+export function resolveSentence(
     modelName: string,
     text: string,
     speed: number,
     steps: number = DEFAULT_STEPS,
     voiceStyle: VoiceStyleId = DEFAULT_VOICE_STYLE,
-): Promise<{ filePath: string; cached: boolean }> {
-    console.log("[TTS] generate sentence", { text, modelName, steps, voiceStyle });
-
+) {
     const custom = findCustomModel(modelName);
     // Language code for Supertonic. For VITS it's in the cache key but has no
     // effect on generation. Default 'sv' to preserve existing audio cache.
@@ -225,15 +227,32 @@ export async function generateSentence(
     const isSupertonic = custom?.family === 'supertonic' || (custom?.aliasOf ? findCustomModel(custom.aliasOf)?.family === 'supertonic' : false);
     if (isSwedish && isSupertonic) text = respellSwedishForSupertonic(text);
 
-    // Clamp steps to valid range
     const clampedSteps = Math.max(MIN_STEPS, Math.min(MAX_STEPS, Math.round(steps)));
 
     // Include all generation params in the cache key so different settings
-    // never collide. (sid is removed — replaced by voiceStyle for Supertonic;
-    // VITS has no voice selection, so voiceStyle is harmless in the key.)
+    // never collide. VITS has no voice selection, so voiceStyle is harmless in the key.
     const hash = objectHash({ modelName, text, speed, lang, steps: clampedSteps, voiceStyle });
-    const filename = hash + '.wav';
-    const filePath = join(env.AUDIO_DIR, filename);
+    const filePath = join(env.AUDIO_DIR, hash + '.wav');
+    return { text, lang, clampedSteps, hash, filePath };
+}
+
+/** True when this sentence's audio is already in the cache (serving it is cheap). */
+export function isSentenceCached(...args: Parameters<typeof resolveSentence>): boolean {
+    return !env.NO_AUDIO_CACHE && fs.existsSync(resolveSentence(...args).filePath);
+}
+
+export async function generateSentence(
+    modelName: string,
+    text: string,
+    speed: number,
+    steps: number = DEFAULT_STEPS,
+    voiceStyle: VoiceStyleId = DEFAULT_VOICE_STYLE,
+): Promise<{ filePath: string; cached: boolean }> {
+    console.log("[TTS] generate sentence", { text, modelName, steps, voiceStyle });
+
+    const resolved = resolveSentence(modelName, text, speed, steps, voiceStyle);
+    const { lang, clampedSteps, hash, filePath } = resolved;
+    text = resolved.text;
 
     if (fs.existsSync(filePath)) {
         console.log('[TTS] reading from cache');
