@@ -50,6 +50,10 @@ Still unsolved, with no respelling helping: keps, regi, geni, deg, norr/norrut, 
 python -I tools/sv-loop/corpus.py ~/.cache/tts-spike/loop/corpus.txt
 HF_HOME=~/.cache/tts-spike/hf python -I tools/sv-loop/loop.py ~/.cache/tts-spike/loop ~/.cache/tts-spike/loop/corpus.txt 60
 ```
+Regression check (44 fixed sentences on 4 voices): `python -I tools/sv-loop/regress.py`. Run it after any rule change.
+
+Only one CUDA process at a time: running two at once on the laptop's RTX 5070 Ti caused an NVIDIA driver fault, after which CUDA was unavailable until reboot. The tools fall back to CPU (`CUDA_VISIBLE_DEVICES=""`).
+
 Keep the work directory off `/tmp`: it is RAM-backed on the dev laptop, and a reboot wipes the loop state.
 
 **Limits:**

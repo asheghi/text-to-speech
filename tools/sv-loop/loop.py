@@ -8,78 +8,30 @@
 #   python -I tools/sv-loop/loop.py <work-dir> <corpus.txt> [batch=60]
 #   RETRY="word1 word2" ... re-tests specific words before continuing.
 # Needs: torch (CUDA recommended), transformers, librosa, soundfile, num2words, requests.
-import io, json, os, re, subprocess, sys, time
-import requests, soundfile as sf, librosa, torch
-from transformers import pipeline
-from num2words import num2words
+import json, os, re, sys, time
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))  # -I drops the script dir
+from common import REPO, Server, tts_stt as _tts_stt, norm, heard, missed_words
 
-REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 LEX = f"{REPO}/server/lib/swedishRespell.auto.json"
 WORK, CORPUS = sys.argv[1], sys.argv[2]
 BATCH = int(sys.argv[3]) if len(sys.argv) > 3 else 60
 PORT = int(os.environ.get("LOOP_PORT", "3199"))
-MODEL = "supertonic-3-sv-int8"
 VOICES = ["F1", "M1"]
 MIN_FREQ = 2  # only chase words that recur; one-off compounds are not worth an entry
 os.makedirs(WORK, exist_ok=True)
 LOG = open(f"{WORK}/log.jsonl", "a", encoding="utf8")
 STATE_F = f"{WORK}/state.json"
 state = json.load(open(STATE_F)) if os.path.exists(STATE_F) else {"done": 0, "rejected": {}, "rounds": []}
+server = Server(PORT, f"{WORK}/server.log")
+
+
+def tts_stt(text, voice): return _tts_stt(PORT, text, voice)
 
 
 def log(**kw):
     kw["t"] = time.strftime("%H:%M:%S")
     LOG.write(json.dumps(kw, ensure_ascii=False) + "\n"); LOG.flush()
     print(json.dumps(kw, ensure_ascii=False), flush=True)
-
-
-server = None
-def start_server():
-    global server
-    if server:
-        server.terminate(); server.wait()
-    env = dict(os.environ, PORT=str(PORT), RATE_LIMIT_MAX="100000000", NO_AUDIO_CACHE="true",
-               LD_LIBRARY_PATH=f"{REPO}/node_modules/sherpa-onnx-linux-x64")
-    server = subprocess.Popen(["bun", "server/index.ts"], cwd=REPO, env=env,
-                              stdout=open(f"{WORK}/server.log", "a"), stderr=subprocess.STDOUT)
-    for _ in range(120):
-        try:
-            requests.get(f"http://localhost:{PORT}/api/tts.wav", timeout=2); return
-        except Exception:
-            time.sleep(1)
-    raise RuntimeError("server did not start")
-
-
-device = "cuda" if torch.cuda.is_available() else "cpu"
-asr = pipeline("automatic-speech-recognition", model="KBLab/kb-whisper-medium", device=device,
-               torch_dtype=torch.float16 if device == "cuda" else torch.float32,
-               generate_kwargs={"language": "sv", "task": "transcribe"})
-
-# Mirror normalizeSwedish's abbreviation expansion so references match what is spoken.
-ABBR = [(r"\bt\.\s?ex\.", "till exempel"), (r"\bbl\.\s?a\.", "bland annat"), (r"\bosv\.", "och så vidare"),
-        (r"\bd\.?\s?v\.?\s?s\.?", "det vill säga"), (r"\bfr\.\s?o\.\s?m\.", "från och med"),
-        (r"\bt\.\s?o\.\s?m\.", "till och med"), (r"\bca\b\.?", "cirka"), (r"\bp\.\s?g\.\s?a\.", "på grund av"),
-        (r"\bm\.\s?fl\.", "med flera"), (r"\bnr\b\.?", "nummer")]
-
-
-def norm(s):
-    for pat, rep in ABBR:
-        s = re.sub(pat, rep, s, flags=re.I)
-    s = re.sub(r"\d+", lambda m: " " + num2words(int(m.group()), lang="sv") + " ", s.lower())
-    return re.sub(r"[^\wåäöéü ]", " ", s).split()
-
-
-def tts_stt(text, voice):
-    r = requests.get(f"http://localhost:{PORT}/api/tts.wav", timeout=300,
-                     params={"text": text, "model": MODEL, "voiceStyle": voice, "steps": 8})
-    r.raise_for_status()
-    a, sr = sf.read(io.BytesIO(r.content), dtype="float32")
-    return asr(librosa.resample(a, orig_sr=sr, target_sr=16000))["text"].strip()
-
-
-def heard(word, hyp):
-    h = norm(hyp)
-    return word in h or word in "".join(h)
 
 
 def carrier(w):
@@ -131,7 +83,7 @@ for s in sentences:
     for w in norm(s):
         FREQ[w] = FREQ.get(w, 0) + 1
 
-start_server()
+server.restart()
 for w in os.environ.get("RETRY", "").split():
     sent = next((s for s in sentences if re.search(rf"(?i)\b{re.escape(w)}\b", s)), carrier(w))
     c = try_fix(w, sent)
@@ -144,9 +96,8 @@ while state["done"] < len(sentences):
     batch = sentences[state["done"]: state["done"] + BATCH]
     n_words = n_miss = 0; missed = {}
     for s in batch:
-        h = norm(tts_stt(s, "F1")); hj = "".join(h); ref = norm(s)
-        miss = [w for w in ref if w not in h and w not in hj]
-        n_words += len(ref); n_miss += len(miss)
+        miss = missed_words(s, tts_stt(s, "F1"))
+        n_words += len(norm(s)); n_miss += len(miss)
         for w in miss:
             if len(w) >= 3:
                 missed.setdefault(w, s)
@@ -167,6 +118,6 @@ while state["done"] < len(sentences):
     state["rounds"].append({"start": state["done"] - len(batch), "miss_rate": rate, "added": added})
     json.dump(state, open(STATE_F, "w"), ensure_ascii=False, indent=1)
     if added:
-        start_server()
+        server.restart()
 log(event="finished", rounds=len(state["rounds"]))
-server.terminate()
+server.stop()
