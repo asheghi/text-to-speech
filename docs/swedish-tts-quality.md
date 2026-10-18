@@ -66,7 +66,7 @@ Corpus: about 4,200 everyday sentences from Swedish Wikipedia, with no digits or
 | Wikipedia sentences 300–359: 2.41% before → **1.37%** after fp32 + stj/gn/korg rules (same text) | |
 | `regress.py`: 44 sentences × 4 voices, with stj/gn patterns, digit-aware scoring (2026-10-17) | 0.88% (8/912) |
 | full corpus pass (4,185 sentences, 70 rounds, 2026-10-18) | 2.0% average; flat from first to last round |
-| `regress.py` after the full pass, on Eagle (ROCm) | 1.21% (11/912): none of the misses touch changed words, so this is run-to-run and GPU-backend variance |
+| `regress.py` after the full pass, on Eagle (ROCm) | 1.21% and 0.99% on two runs. The rules from before the pass (126e291), run on Eagle the same way, scored 1.32%. So the rise against the laptop's 0.88–1.10% comes from the different GPU backend, not from the new rules. |
 
 **The loop has converged.** The full corpus pass accepted only 4 words (potatis-sorter, kommun-typ, aurikularis, plus earlier ones), and the miss rate did not fall over the run. Nearly every remaining miss is a rare compound, a Latin or English term, or a one-off. More rounds will not move the number; what is left is pitch accent and stress, which ASR cannot measure.
 
