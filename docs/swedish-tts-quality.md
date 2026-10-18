@@ -29,6 +29,11 @@ Tools:
 - `tools/sv-loop/synth.ts` synthesises with a given model directory.
 - `tools/sv-loop/mos.py` scores directories of wavs.
 
+### Voices (fp32, 8 steps, 44 sentences each)
+UTMOS: F3 4.24 · F1 4.18 · M4 4.12 · F5 4.08 · M1 4.03 (default) · F2 4.00 · M5 3.97 · F4 3.97 · M2 3.87 · M3 3.77 (±0.02–0.04).
+
+F3 and F1 score highest; M4 is the best male voice. The default (M1) is unchanged: choosing the default voice is a product decision, and UTMOS was trained on English, so a listening check comes first.
+
 ## Text pipeline (Swedish only, `server/lib/tts.ts` → `resolveSentence`)
 1. **`normalizeSwedish`** ([server/lib/normalizeSwedish.ts](../server/lib/normalizeSwedish.ts)) writes out numbers, decimal commas, years, HH:MM times, `kl`, dates (`2024-05-03`, `3 maj` → tredje maj), written ordinals (`3:e`, `21:a`), kr, %, units and common abbreviations (t.ex., bl.a., dvs., ca …). Tests are in `normalizeSwedish.test.ts`. It applies to all Swedish models.
 2. **`respellSwedishForSupertonic`** ([server/lib/swedishRespell.ts](../server/lib/swedishRespell.ts)) applies to Supertonic only:
