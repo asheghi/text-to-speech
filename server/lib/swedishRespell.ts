@@ -19,6 +19,11 @@ const ENTRIES: Array<[string, string, string]> = [
     ['kebab', 'kkebab', '(en|ens|er|erna|s)?'],
     ['kiwi', 'kkiwi', '(n|ns|s|er|erna)?'],
     ['kex', 'kkex', '(et|ets|en|ens|s)?'],
+    // Final rg is a j-sound in these words (korj, färj, torj). Not a general rule:
+    // respelling sorg or talg made them worse (4-voice check, tools/sv-loop/ruletest.py).
+    ['korg', 'korj', '(en|ens|ar|arna|arnas|s)?'],
+    ['färg', 'färj', '(en|ens|er|erna|ernas|s)?'],
+    ['torg', 'torj', '(et|ets|en|s)?'],
     // French/English loanwords with a sj-sound
     ['ingenjör', 'insjenjör', '(en|ens|er|erna|ernas|s)?'],
     ['journalist', 'sjurnalist', '(en|ens|er|erna|ernas|isk|iska|s)?'],

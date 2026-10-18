@@ -22,6 +22,7 @@ This doc records how the app's Swedish output is measured and improved, and what
    - **Stem entries** (with inflections):
      - Hard-k exceptions: kille, killar, kebab, kiwi, kex.
      - Loanwords with a sj-sound: ingenjör, journalist, genre, gest, lasagne.
+     - Final rg as a j-sound: korg, färg, torg. As a general rule, rg→rj made sorg (4→2 of 4 voices) and talg worse, so it is per-word only.
    - **`swedishRespell.auto.json`:** exact-word entries found by the automated loop.
 
 ## Closed TTS → STT loop
@@ -51,6 +52,8 @@ Still unsolved, with no respelling helping: keps, regi, geni, deg, norr/norrut, 
 python -I tools/sv-loop/corpus.py ~/.cache/tts-spike/loop/corpus.txt
 HF_HOME=~/.cache/tts-spike/hf python -I tools/sv-loop/loop.py ~/.cache/tts-spike/loop ~/.cache/tts-spike/loop/corpus.txt 60
 ```
+Testing a candidate rule on 4 voices: `python -I tools/sv-loop/ruletest.py '<regex>' '<replacement>' word1,word2`.
+
 Regression check (44 fixed sentences on 4 voices): `python -I tools/sv-loop/regress.py`. Run it after any rule change.
 
 Only one CUDA process at a time: running two at once on the laptop's RTX 5070 Ti caused an NVIDIA driver fault, after which CUDA was unavailable until reboot. The tools fall back to CPU (`CUDA_VISIBLE_DEVICES=""`).
