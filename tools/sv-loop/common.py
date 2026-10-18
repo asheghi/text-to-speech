@@ -37,7 +37,9 @@ def asr():
     if _asr is None:
         device = "cuda" if torch.cuda.is_available() else "cpu"
         _asr = pipeline("automatic-speech-recognition", model="KBLab/kb-whisper-medium", device=device,
-                        torch_dtype=torch.float16 if device == "cuda" else torch.float32,
+                        # fp32 even on CUDA: fp16 runs ended in NVIDIA driver faults
+                        # ("unspecified launch failure") on the laptop's RTX 5070 Ti.
+                        torch_dtype=torch.float32,
                         generate_kwargs={"language": "sv", "task": "transcribe"})
     return _asr
 

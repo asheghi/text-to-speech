@@ -81,7 +81,7 @@ Testing a candidate rule on 4 voices: `python -I tools/sv-loop/ruletest.py '<reg
 
 Regression check (44 fixed sentences on 4 voices): `python -I tools/sv-loop/regress.py`. Run it after any rule change.
 
-Only one CUDA process at a time: running two at once on the laptop's RTX 5070 Ti caused an NVIDIA driver fault, after which CUDA was unavailable until reboot. The tools fall back to CPU (`CUDA_VISIBLE_DEVICES=""`).
+The laptop's RTX 5070 Ti hit NVIDIA driver faults (`unspecified launch failure`, NVRM errors in the kernel log) under sustained ASR load. It happened with two processes and again with one, and each time CUDA stayed unavailable until reboot. The tools now run ASR in fp32 rather than fp16, which is the next thing to try. The tools fall back to CPU (`CUDA_VISIBLE_DEVICES=""`).
 
 Keep the work directory off `/tmp`: it is RAM-backed on the dev laptop, and a reboot wipes the loop state.
 
