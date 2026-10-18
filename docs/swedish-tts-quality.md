@@ -48,6 +48,8 @@ Much of what remains is recogniser noise: words written as digits, inconsistent 
 
 Still unsolved: regi, geni, deg, norr/norrut, barr, taggiga, symtom, jäst compounds. These sit at 0/4 with every respelling, which points to recogniser blind spots in the carrier sentence rather than Supertonic errors. jeans and regeln improved only to 2/4. keps was ASR noise (the original now passes 4/4). These need a native-speaker check.
 
+The most frequent remaining regression miss, `ute` in "Det regnar ute idag", passes 4/4 when spoken alone. The recogniser hears "ut idag" in context: that is coarticulation, not a spelling problem, so it is left alone.
+
 **Running it** (needs a venv with CUDA torch, transformers, librosa, soundfile, num2words and requests):
 ```
 python -I tools/sv-loop/corpus.py ~/.cache/tts-spike/loop/corpus.txt
