@@ -58,7 +58,7 @@ def candidates(w):
         c = re.sub(pat, rep, w, count=1)
         if c != w and c not in out:
             out.append(c)
-    return out[:14]
+    return out[:int(os.environ.get("MAX_CANDIDATES", "14"))]
 
 
 def try_fix(w, sent):
