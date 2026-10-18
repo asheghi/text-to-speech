@@ -11,6 +11,7 @@ describe('respellSwedishForSupertonic', () => {
         expect(r('Ingenjörerna och killen')).toBe('Insjenjörerna och kkillen');
         expect(r('KILLAR')).toBe('KKILLAR');
         expect(r('korgen med yoghurt')).toBe('korjen med jogurt');
+        expect(r('Färgade väggar och färgblindhet, inte färjan')).toBe('Färjade väggar och färjblindhet, inte färjan');
     });
     test('stems only match whole words', () => {
         expect(r('gestalt')).toBe('gestalt');

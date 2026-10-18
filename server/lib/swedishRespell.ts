@@ -22,7 +22,9 @@ const ENTRIES: Array<[string, string, string]> = [
     // Final rg is a j-sound in these words (korj, färj, torj). Not a general rule:
     // respelling sorg or talg made them worse (4-voice check, tools/sv-loop/ruletest.py).
     ['korg', 'korj', '(en|ens|ar|arna|arnas|s)?'],
-    ['färg', 'färj', '(en|ens|er|erna|ernas|s)?'],
+    // Every word starting with färg is about colour, so it covers verbs and
+    // compounds too (färgat 1->4, färgade 2->4, färgblindhet 3->4).
+    ['färg', 'färj', '\\p{L}*'],
     ['torg', 'torj', '(et|ets|en|s)?'],
     // Loanword spellings Supertonic misreads (4-voice check: yoghurt 1->4, eksem 0->4)
     ['yoghurt', 'jogurt', '(en|ens|ar|arna|s)?'],
