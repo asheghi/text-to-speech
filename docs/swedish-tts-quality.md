@@ -63,6 +63,7 @@ Corpus: about 4,200 everyday sentences from Swedish Wikipedia, with no digits or
 | 40 hand-written test sentences, before respelling | 4.7% |
 | same, after stem entries | 2.7% |
 | Wikipedia rounds (60 sentences each) | 1.7–2.5% |
+| Wikipedia sentences 300–359: 2.41% before → **1.37%** after fp32 + stj/gn/korg rules (same text) | |
 | `regress.py`: 44 sentences × 4 voices, with stj/gn patterns, digit-aware scoring (2026-10-17) | 0.88% (8/912) |
 
 Much of what remains is recogniser noise: words written as digits, inconsistent one-off misses.
