@@ -27,8 +27,10 @@ const ENTRIES: Array<[string, string, string]> = [
     // Loanword spellings Supertonic misreads (4-voice check: yoghurt 1->4, eksem 0->4)
     ['yoghurt', 'jogurt', '(en|ens|ar|arna|s)?'],
     ['eksem', 'exem', '(et|ets|en|s)?'],
-    // Compound read as one syllable run; mark the boundary (förser 1->4)
+    // Compounds read as one syllable run; mark the boundary (förser 1->4,
+    // färskjäst 0->4). Not general: torr-jäst and jäs-korgar only reached 1-2/4.
     ['förser', 'för-ser', ''],
+    ['färskjäst', 'färsk-jäst', '(en|ens)?'],
     // French/English loanwords with a sj-sound
     ['ingenjör', 'insjenjör', '(en|ens|er|erna|ernas|s)?'],
     ['journalist', 'sjurnalist', '(en|ens|er|erna|ernas|isk|iska|s)?'],
