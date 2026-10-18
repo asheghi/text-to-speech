@@ -21,3 +21,20 @@ describe('normalizeSwedish', () => {
         expect(n('t.ex. kakor, bl.a. bullar')).toBe('till exempel kakor, bland annat bullar');
     });
 });
+
+describe('number one agrees with the noun', () => {
+    test('en and ett', () => {
+        expect(n('Jag har 1 bok och 1 barn.')).toBe('Jag har en bok och ett barn.');
+        expect(n('1 person, 1 skolbarn, 1 bageri, 1 museum')).toBe('en person, ett skolbarn, ett bageri, ett museum');
+        expect(n('1 år')).toBe('ett år');
+    });
+    test('bare numbers stay ett', () => {
+        expect(n('1 till 3')).toBe('ett till tre');
+        expect(n('Siffran 1.')).toBe('Siffran ett.');
+    });
+    test('units and currency', () => {
+        expect(n('1 kr')).toBe('en krona');
+        expect(n('1 km och 1 kg')).toBe('en kilometer och ett kilo');
+        expect(n('1 %')).toBe('en procent');
+    });
+});

@@ -78,6 +78,33 @@ const ABBREVIATIONS: Array<[RegExp, string]> = [
     [/\bkl\.?(?=\s*\d)/gi, 'klockan'],
 ];
 
+// Common "ett" nouns (neuter). "1" before any other word is read "en", which is
+// right for about 3 of 4 Swedish nouns. Compounds are matched on their last part
+// (skolbarn -> barn), so only base words are needed here.
+const ETT_NOUNS = new Set(`år barn hus land ord jobb språk bord rum fönster tåg flyg flygplan
+    kort brev glas äpple ägg bröd kilo gram ark exempel fel problem system program
+    företag land liv namn nummer par paket pris prov rop samtal sätt ställe svar
+    tal tak träd tecken test uttryck val var verk villkor ögonblick öra öga ben
+    hjärta huvud ansikte finger djur får lamm svin bi hem hotell kontor kök
+    sjukhus museum centrum bibliotek konto lån beslut förslag avtal möte
+    projekt mål moment ögonblick dygn decennium sekel kvarter kapitel stycke
+    papper foto kök fat kärl lag lager mönster ljud ljus moln regn vatten salt
+    socker kaffe te vin öl kött barnbarn dokument instrument parti spel lopp
+    besök ärende intresse universitet gymnasium fält torg slott berg hav`.split(/\s+/));
+const ETT_SUFFIXES = ['eri', 'ment', 'um', 'ande', 'ende'];
+// After these, "1" is a bare number ("1 till 3", "1 av 5"), read "ett".
+const NOT_NOUNS = new Set('till och eller av i på per à från mot än som om eller plus minus gånger delat'.split(' '));
+
+/** "en" or "ett" for the number 1 before this word. */
+function oneFor(word: string): string {
+    const w = word.toLowerCase();
+    if (NOT_NOUNS.has(w) || ETT_NOUNS.has(w) || ETT_SUFFIXES.some(s => w.endsWith(s))) return 'ett';
+    // Compounds take the gender of their last part: skolbarn -> barn. Only parts
+    // of 3+ letters, so short words like "te" do not match unrelated endings.
+    for (let i = 1; i <= w.length - 3; i++) if (ETT_NOUNS.has(w.slice(i))) return 'ett';
+    return 'en';
+}
+
 const toInt = (s: string) => parseInt(s.replace(/[\s ]/g, ''), 10);
 
 function readNumber(raw: string): string {
@@ -106,14 +133,16 @@ export function normalizeSwedish(text: string): string {
     // Written ordinals: 3:e, 1:a, 2:a, 21:a -> tredje, första, andra, tjugoförsta
     t = t.replace(/\b(\d{1,3}):([ae])\b/g, (_, n) => ordinalToSwedish(+n));
 
-    t = t.replace(new RegExp(`(${NUM})\\s?%`, 'g'), (_, n) => `${readNumber(n)} procent`);
-    t = t.replace(new RegExp(`(${NUM})\\s?(?:kr|SEK)\\b`, 'g'), (_, n) => `${readNumber(n)} kronor`);
+    t = t.replace(new RegExp(`(${NUM})\\s?%`, 'g'), (_, n) => `${n === '1' ? 'en' : readNumber(n)} procent`);
+    t = t.replace(new RegExp(`(${NUM})\\s?(?:kr|SEK)\\b`, 'g'), (_, n) => n === '1' ? 'en krona' : `${readNumber(n)} kronor`);
     t = t.replace(new RegExp(`(${NUM})\\s?(km|kg|cm|mm|m|g)\\b`, 'g'), (_, n, u: string) =>
-        `${readNumber(n)} ${({ km: 'kilometer', kg: 'kilo', cm: 'centimeter', mm: 'millimeter', m: 'meter', g: 'gram' } as Record<string, string>)[u]}`);
+        `${n === '1' ? (u === 'kg' || u === 'g' ? 'ett' : 'en') : readNumber(n)} ${({ km: 'kilometer', kg: 'kilo', cm: 'centimeter', mm: 'millimeter', m: 'meter', g: 'gram' } as Record<string, string>)[u]}`);
     // Times (colon only, so "3.50" is not misread): 14:30 -> fjorton och trettio
     t = t.replace(/\b([01]?\d|2[0-3]):([0-5]\d)\b/g, (_, h, m) =>
         `${numberToSwedish(+h)}${+m ? ' och ' + numberToSwedish(+m) : ''}`);
     t = t.replace(/\b(1[1-9]\d{2})\b/g, (_, y) => yearToSwedish(+y));
+    // "1" before a word agrees with its gender: en bok, ett barn.
+    t = t.replace(/(^|[^\p{L}\p{N},])1\s+(\p{Ll}+)/gu, (_, pre, w) => `${pre}${oneFor(w)} ${w}`);
     t = t.replace(new RegExp(`(^|[^\\w,])(${NUM})(?![\\w])`, 'g'), (_, pre, n) => pre + readNumber(n));
     return t;
 }
