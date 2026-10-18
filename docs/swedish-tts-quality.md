@@ -22,6 +22,7 @@ This doc records how the app's Swedish output is measured and improved, and what
    - **Stem entries** (with inflections):
      - Hard-k exceptions: kille, killar, kebab, kiwi, kex.
      - Loanwords with a sj-sound: ingenjör, journalist, genre, gest, lasagne.
+     - Loanword spellings: yoghurt → jogurt, eksem → exem. Compound boundary: förser → för-ser.
      - Final rg as a j-sound: korg, färg, torg. As a general rule, rg→rj made sorg (4→2 of 4 voices) and talg worse, so it is per-word only.
    - **`swedishRespell.auto.json`:** exact-word entries found by the automated loop.
 
@@ -45,7 +46,7 @@ Corpus: about 4,200 everyday sentences from Swedish Wikipedia, with no digits or
 
 Much of what remains is recogniser noise: words written as digits, inconsistent one-off misses.
 
-Still unsolved, with no respelling helping: keps, regi, geni, deg, norr/norrut, jäst compounds, förser. These need a native-speaker check.
+Still unsolved: regi, geni, deg, norr/norrut, barr, taggiga, symtom, jäst compounds. These sit at 0/4 with every respelling, which points to recogniser blind spots in the carrier sentence rather than Supertonic errors. jeans and regeln improved only to 2/4. keps was ASR noise (the original now passes 4/4). These need a native-speaker check.
 
 **Running it** (needs a venv with CUDA torch, transformers, librosa, soundfile, num2words and requests):
 ```

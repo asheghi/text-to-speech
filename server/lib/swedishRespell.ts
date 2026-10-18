@@ -24,6 +24,11 @@ const ENTRIES: Array<[string, string, string]> = [
     ['korg', 'korj', '(en|ens|ar|arna|arnas|s)?'],
     ['färg', 'färj', '(en|ens|er|erna|ernas|s)?'],
     ['torg', 'torj', '(et|ets|en|s)?'],
+    // Loanword spellings Supertonic misreads (4-voice check: yoghurt 1->4, eksem 0->4)
+    ['yoghurt', 'jogurt', '(en|ens|ar|arna|s)?'],
+    ['eksem', 'exem', '(et|ets|en|s)?'],
+    // Compound read as one syllable run; mark the boundary (förser 1->4)
+    ['förser', 'för-ser', ''],
     // French/English loanwords with a sj-sound
     ['ingenjör', 'insjenjör', '(en|ens|er|erna|ernas|s)?'],
     ['journalist', 'sjurnalist', '(en|ens|er|erna|ernas|isk|iska|s)?'],
