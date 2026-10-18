@@ -65,6 +65,12 @@ Corpus: about 4,200 everyday sentences from Swedish Wikipedia, with no digits or
 | Wikipedia rounds (60 sentences each) | 1.7–2.5% |
 | Wikipedia sentences 300–359: 2.41% before → **1.37%** after fp32 + stj/gn/korg rules (same text) | |
 | `regress.py`: 44 sentences × 4 voices, with stj/gn patterns, digit-aware scoring (2026-10-17) | 0.88% (8/912) |
+| full corpus pass (4,185 sentences, 70 rounds, 2026-10-18) | 2.0% average; flat from first to last round |
+| `regress.py` after the full pass, on Eagle (ROCm) | 1.21% (11/912): none of the misses touch changed words, so this is run-to-run and GPU-backend variance |
+
+**The loop has converged.** The full corpus pass accepted only 4 words (potatis-sorter, kommun-typ, aurikularis, plus earlier ones), and the miss rate did not fall over the run. Nearly every remaining miss is a rare compound, a Latin or English term, or a one-off. More rounds will not move the number; what is left is pitch accent and stress, which ASR cannot measure.
+
+One family fix came out of the misses: `färg` → `färj` now covers every word starting with färg (färgat 1→4/4, färgade 2→4/4, färgblindhet 3→4/4).
 
 Much of what remains is recogniser noise: words written as digits, inconsistent one-off misses.
 
@@ -81,7 +87,7 @@ Testing a candidate rule on 4 voices: `python -I tools/sv-loop/ruletest.py '<reg
 
 Regression check (44 fixed sentences on 4 voices): `python -I tools/sv-loop/regress.py`. Run it after any rule change.
 
-The laptop's RTX 5070 Ti hit NVIDIA driver faults (`unspecified launch failure`, NVRM errors in the kernel log) under sustained ASR load. It happened with two processes and again with one, and each time CUDA stayed unavailable until reboot. The tools now run ASR in fp32 rather than fp16, which is the next thing to try. The tools fall back to CPU (`CUDA_VISIBLE_DEVICES=""`).
+The laptop's RTX 5070 Ti hit NVIDIA driver faults (`unspecified launch failure`, NVRM errors in the kernel log) under sustained ASR load. It happened with two processes and again with one, and each time CUDA stayed unavailable until reboot. The tools now run ASR in fp32 rather than fp16, which is the next thing to try. fp32 did not help: CUDA failed again minutes after a fresh reboot. The full pass was therefore run on **Eagle** (Radeon RX 7900 XTX, PyTorch ROCm 6.4 wheel, `~/.cache/tts-spike/rocm` venv) at about 2 minutes per 60-sentence round, with no faults. The tools fall back to CPU (`CUDA_VISIBLE_DEVICES=""`).
 
 Keep the work directory off `/tmp`: it is RAM-backed on the dev laptop, and a reboot wipes the loop state.
 

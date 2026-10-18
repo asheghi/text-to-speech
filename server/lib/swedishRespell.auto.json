@@ -1,5 +1,8 @@
 {
+  "auricularis": "aurikularis",
   "dryckform": "dryck-form",
+  "kommuntyp": "kommun-typ",
   "månkalender": "mån-kalender",
+  "potatissorter": "potatis-sorter",
   "trädgren": "träd-gren"
 }
