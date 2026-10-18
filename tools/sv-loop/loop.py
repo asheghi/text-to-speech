@@ -58,6 +58,14 @@ def candidates(w):
         c = re.sub(pat, rep, w, count=1)
         if c != w and c not in out:
             out.append(c)
+    # Compound boundary: split only where both halves are corpus words (mån-kalender),
+    # never at arbitrary positions (that produced junk like sko-lkök).
+    for i in range(3, len(w) - 2):
+        a, b = w[:i], w[i:]
+        if FREQ.get(a, 0) >= 2 and FREQ.get(b, 0) >= 2:
+            out.insert(0, f"{a}-{b}")
+        elif a.endswith("s") and FREQ.get(a[:-1], 0) >= 2 and FREQ.get(b, 0) >= 2:
+            out.insert(0, f"{a}-{b}")  # linking s: malnings-graden
     return out[:int(os.environ.get("MAX_CANDIDATES", "14"))]
 
 
