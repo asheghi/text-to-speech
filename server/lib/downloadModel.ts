@@ -222,6 +222,9 @@ async function downloadExtraFiles(model: CustomModel, targetDir: string): Promis
         if (!res.ok) {
             throw new Error(`Failed to download supplementary file ${f.url}: ${res.status}`);
         }
-        fs.writeFileSync(dest, Buffer.from(await res.arrayBuffer()));
+        // Write then rename, so a crash mid-write never leaves a truncated file
+        // that the existsSync check above would treat as complete.
+        fs.writeFileSync(dest + '.part', Buffer.from(await res.arrayBuffer()));
+        fs.renameSync(dest + '.part', dest);
     }
 }

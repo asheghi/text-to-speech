@@ -10,8 +10,24 @@ This doc records how the app's Swedish output is measured and improved, and what
   - OmniVoice: 40–99 s per sentence on CPU, and its word-miss rate is no better.
   - VoxCPM2: too large for CPU.
   - MMS: 16 kHz, non-commercial licence.
-  - Supertonic fp32 vs int8: int8 is not faster on CPU. Choosing between them by ear is still open.
   - Fine-tuning: dropped (Supertonic has no training code).
+
+## Model precision and steps (2026-10-18)
+Predicted naturalness (UTMOS22 strong; trained on English, so read it as relative), on the 44 regression sentences × F1/M1, with local CPU timings:
+
+| Variant | UTMOS | ms/sentence |
+|---|---|---|
+| int8, 8 steps (was live) | 3.98 ± 0.03 | 3,877 |
+| int8, 12 steps | 3.99 | 4,822 |
+| int8, 16 steps | 4.01 | 5,837 |
+| **fp32, 8 steps (now live)** | **4.11 ± 0.02** | **3,808** |
+| fp32, 12 steps | 4.13 | 4,737 |
+
+fp32 is clearly better at no CPU cost, so the server now downloads the official full-precision vector estimator and vocoder as `extraFiles` (+357 MB), and the engine prefers them. Steps add little, so the default stays at 8.
+
+Tools:
+- `tools/sv-loop/synth.ts` synthesises with a given model directory.
+- `tools/sv-loop/mos.py` scores directories of wavs.
 
 ## Text pipeline (Swedish only, `server/lib/tts.ts` → `resolveSentence`)
 1. **`normalizeSwedish`** ([server/lib/normalizeSwedish.ts](../server/lib/normalizeSwedish.ts)) writes out numbers, decimal commas, years, HH:MM times, `kl`, dates (`2024-05-03`, `3 maj` → tredje maj), written ordinals (`3:e`, `21:a`), kr, %, units and common abbreviations (t.ex., bl.a., dvs., ca …). Tests are in `normalizeSwedish.test.ts`. It applies to all Swedish models.

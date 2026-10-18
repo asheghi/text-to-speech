@@ -154,6 +154,10 @@ export const customModels: CustomModel[] = [
         defaultLang: 'sv',
         family: 'supertonic',
         extraFiles: [
+            // Full-precision vector estimator + vocoder (~357 MB). The engine prefers
+            // them over the bundle's int8 copies: same CPU speed, UTMOS 4.11 vs 3.98.
+            { url: `${HF_SUPERTONIC}/onnx/vector_estimator.onnx`, destName: 'vector_estimator.onnx' },
+            { url: `${HF_SUPERTONIC}/onnx/vocoder.onnx`, destName: 'vocoder.onnx' },
             // Unicode character→token-index mapping (needed by native engine).
             // The k2-fsa bundle ships unicode_indexer.bin (sherpa-onnx format);
             // the native engine needs the JSON version from the official HF repo.

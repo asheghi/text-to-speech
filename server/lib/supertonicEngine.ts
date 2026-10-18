@@ -365,7 +365,10 @@ class SupertonicTTSEngine {
 
 function findOnnxFile(modelDir: string, prefix: string): string {
     const files = fs.readdirSync(modelDir);
-    const found = files.find(f => f.startsWith(prefix) && f.endsWith('.onnx'));
+    // Prefer full-precision weights when present: on CPU they are no slower than
+    // int8 and score higher on predicted naturalness (docs/swedish-tts-quality.md).
+    const matches = files.filter(f => f.startsWith(prefix) && f.endsWith('.onnx'));
+    const found = matches.find(f => !f.includes('int8')) ?? matches[0];
     if (!found) throw new Error(`Supertonic: no ${prefix}*.onnx found in ${modelDir}`);
     return path.join(modelDir, found);
 }
