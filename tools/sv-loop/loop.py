@@ -56,7 +56,8 @@ def candidates(w):
     out = []
     for pat, rep in RULES:
         c = re.sub(pat, rep, w, count=1)
-        if c != w and c not in out:
+        # Skip triple letters (ledde -> leddde): not a real Swedish spelling.
+        if c != w and c not in out and not re.search(r"(.)\1\1", c):
             out.append(c)
     # Compound boundary: split only where both halves are corpus words (mån-kalender),
     # never at arbitrary positions (that produced junk like sko-lkök).

@@ -32,4 +32,4 @@ data/*
 
 .playwright-mcp
 *.png
-plans
+plans__pycache__/
