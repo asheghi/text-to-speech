@@ -29,8 +29,15 @@ const allowedIps = new Set(
     (env.ALLOWED_IPS ?? '').split(',').map(s => s.trim()).filter(Boolean)
 );
 
+// API_KEY may list several comma-separated keys, so one service can give each
+// caller its own key (e.g. the QA app and prod sharing the MSI GPU).
+const apiKeys = new Set(
+    (env.API_KEY ?? '').split(',').map(s => s.trim()).filter(Boolean)
+);
+
 const isPrivileged = (req: Request): boolean => {
-    if (env.API_KEY && req.headers['x-api-key'] === env.API_KEY) return true;
+    const header = req.headers['x-api-key'];
+    if (typeof header === 'string' && apiKeys.has(header)) return true;
     const ip = req.ip ?? '';
     if (allowedIps.has(ip)) return true;
     return false;

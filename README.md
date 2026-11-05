@@ -57,7 +57,7 @@ Environment variables are validated in `server/env.ts`.
 | `VITE_APP_TITLE` | `Tala Text To Speech` | App title/brand shown in the UI |
 | `VITE_APP_DESCRIPTION` | app description | Default SEO description |
 | `VITE_APP_URL` | request origin | Canonical production URL used for SEO tags, sitemap, and robots.txt |
-| `API_KEY` | unset | Secret token for privileged API calls |
+| `API_KEY` | unset | Secret token for privileged API calls; several comma-separated keys give each caller its own |
 | `ALLOWED_IPS` | unset | Comma-separated IPs that bypass public rate limits |
 | `PUBLIC_MAX_TEXT_LENGTH` | `200` | Max text length for public callers; `0` disables the cap |
 | `MAX_CONCURRENT_GENERATIONS` | `1` | Global concurrent TTS generation limit |

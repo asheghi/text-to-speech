@@ -20,7 +20,7 @@ export const envSchema = z.object({
     /** skip storing audio files into cache */
     // z.coerce.boolean() would turn the string "false" into true.
     NO_AUDIO_CACHE: z.string().optional().transform(v => v === 'true' || v === '1'),
-    /** secret token that bypasses rate limiting */
+    /** secret token(s) that bypass rate limiting; comma-separated for one key per caller */
     API_KEY: z.string().optional(),
     /** comma-separated IPs that bypass rate limiting */
     ALLOWED_IPS: z.string().optional(),
