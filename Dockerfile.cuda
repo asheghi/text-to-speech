@@ -1,0 +1,27 @@
+# GPU variant of the Dockerfile: same app, on a CUDA 12 + cuDNN 9 base, with
+# the onnxruntime-node CUDA execution provider installed. Run it with
+# `--gpus all` and ONNX_EXECUTION_PROVIDER=cuda. x86_64 only.
+FROM nvidia/cuda:12.8.1-cudnn-runtime-ubuntu24.04
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    bzip2 ca-certificates curl ffmpeg unzip \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=oven/bun:1 /usr/local/bin/bun /usr/local/bin/bun
+
+WORKDIR /app
+
+COPY bun.lockb .
+COPY package.json .
+
+# The CUDA EP binaries are too large for npm, so onnxruntime-node downloads
+# them in its install script only when asked.
+RUN ONNXRUNTIME_NODE_INSTALL=cuda12 bun install --frozen-lockfile
+
+COPY . .
+
+RUN bun run build
+
+RUN chmod +x dockerEntryPoint.sh
+
+ENTRYPOINT ["./dockerEntryPoint.sh"]

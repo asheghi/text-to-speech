@@ -393,13 +393,14 @@ export async function loadSupertonicTTS(modelDir: string): Promise<SupertonicTTS
 
     const threadCount = env.THREAD_COUNT ?? os.cpus().length;
     const sessionOpts: ort.InferenceSession.SessionOptions = {
-        executionProviders: ['cpu'],
+        // 'cuda' keeps 'cpu' as the fallback for ops the CUDA EP does not implement.
+        executionProviders: env.ONNX_EXECUTION_PROVIDER === 'cuda' ? ['cuda', 'cpu'] : ['cpu'],
         intraOpNumThreads: threadCount,
         interOpNumThreads: 1,
         executionMode: 'sequential',
         graphOptimizationLevel: 'all',
     };
-    console.log(`[Supertonic] ONNX session opts: intraOp=${threadCount}, interOp=1, sequential, graph=all`);
+    console.log(`[Supertonic] ONNX session opts: ep=${env.ONNX_EXECUTION_PROVIDER}, intraOp=${threadCount}, interOp=1, sequential, graph=all`);
 
     console.log('[Supertonic] loading ONNX sessions (parallel)...');
     const [dpOrt, textEncOrt, vectorEstOrt, vocoderOrt] = await Promise.all([

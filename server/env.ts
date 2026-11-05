@@ -10,6 +10,8 @@ export const envSchema = z.object({
     NODE_ENV: z.string().optional(),
     PORT: z.coerce.number().int().positive().default(8080),
     THREAD_COUNT: z.coerce.number().int().positive().optional(),
+    /** onnxruntime execution provider for Supertonic: 'cuda' needs the Dockerfile.cuda image and a GPU */
+    ONNX_EXECUTION_PROVIDER: z.enum(['cpu', 'cuda']).default('cpu'),
     MODELS_DIR: z.string().default('data/models'),
     AUDIO_DIR: z.string().default('data/audio'),
     VITE_APP_TITLE: z.string().default(DEFAULT_APP_NAME),
