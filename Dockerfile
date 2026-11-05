@@ -2,7 +2,8 @@ FROM oven/bun:debian
 
 RUN apt-get update
 
-RUN apt-get install -y bzip2
+# ffmpeg encodes the optional flac/opus transport formats (server/lib/encodeAudio.ts).
+RUN apt-get install -y --no-install-recommends bzip2 ffmpeg
 
 WORKDIR /app
 

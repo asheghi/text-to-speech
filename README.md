@@ -126,7 +126,7 @@ Additional voices are auto-discovered from the `k2-fsa/sherpa-onnx` TTS model re
 
 ### `GET /api/tts` and `GET /api/tts.wav`
 
-Streams synthesized audio as a WAV file.
+Streams synthesized audio, WAV by default.
 
 | Parameter | Type | Required | Default | Notes |
 | --- | --- | --- | --- | --- |
@@ -135,6 +135,7 @@ Streams synthesized audio as a WAV file.
 | `speed` | number | no | `1.0` | Playback speed multiplier |
 | `steps` | integer | no | `8` | Supertonic synthesis quality steps, from `2` to `16` |
 | `voiceStyle` | string | no | `M1` | Supertonic voice style ID, from `M1` to `F5` |
+| `format` | string | no | `wav` | `flac` (lossless, about 2.7x smaller) or `opus` (lossy Ogg Opus 32 kbps). Encoded with ffmpeg and cached next to the WAV |
 
 Example:
 
@@ -152,7 +153,7 @@ Response headers include:
 
 | Header | Values | Notes |
 | --- | --- | --- |
-| `Content-Type` | `audio/wave` | WAV audio stream |
+| `Content-Type` | `audio/wave` / `audio/flac` / `audio/ogg` | Depends on `format` |
 | `X-Cache` | `HIT` / `MISS` | Whether audio was served from cache |
 | `Cache-Control` | `public, max-age=604800` | 7-day browser cache |
 

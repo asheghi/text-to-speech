@@ -11,6 +11,7 @@ import fs from 'fs'
 import { env } from './env';
 import { SpaExpressRouter } from './spaExpressRouter';
 import { startCleanupJob } from './lib/cleanup';
+import { CONTENT_TYPES, EXTENSIONS, encodedPath, parseAudioFormat } from './lib/encodeAudio';
 
 
 console.log("Starting server ...");
@@ -80,7 +81,7 @@ app.use(
 );
 
 const handleTTS = async (req: Request, res: Response) => {
-    const { text, model, speed, steps, voiceStyle } = req.query;
+    const { text, model, speed, steps, voiceStyle, format } = req.query;
     console.log(`Received request for TTS with model ${model} and text "${text}"`);
 
     if (!text || !model) {
@@ -93,6 +94,12 @@ const handleTTS = async (req: Request, res: Response) => {
 
     if (env.PUBLIC_MAX_TEXT_LENGTH > 0 && !isPrivileged(req) && text.length > env.PUBLIC_MAX_TEXT_LENGTH) {
         return res.status(413).send(`Text too long. Public requests are limited to ${env.PUBLIC_MAX_TEXT_LENGTH} characters.`);
+    }
+
+    // format: transport encoding of the response (wav default, flac lossless, opus lossy).
+    const parsedFormat = parseAudioFormat(format);
+    if (!parsedFormat) {
+        return res.status(400).send('invalid format parameter.');
     }
 
     const parsedSpeed = parseFloat(speed as string);
@@ -152,13 +159,22 @@ const handleTTS = async (req: Request, res: Response) => {
         return res.send();
     }
 
+    const wavPath = filePath;
+    try {
+        filePath = await encodedPath(wavPath, parsedFormat);
+    } catch (error) {
+        console.error(error);
+        console.error(`failed to encode audio as ${parsedFormat}`);
+        return res.status(500).send('failed to encode audio');
+    }
+
     const stat = fs.statSync(filePath);
     const fileSize = stat.size;
 
     res.writeHead(200, {
-        'Content-Type': 'audio/wave',
+        'Content-Type': CONTENT_TYPES[parsedFormat],
         'Content-Length': fileSize,
-        'Content-Disposition': `inline; filename="speech.wav"`,
+        'Content-Disposition': `inline; filename="speech.${EXTENSIONS[parsedFormat]}"`,
         'Cache-Control': 'public, max-age=604800',
         'X-Cache': cached ? 'HIT' : 'MISS',
     });
@@ -175,7 +191,9 @@ const handleTTS = async (req: Request, res: Response) => {
 
     if (env.NO_AUDIO_CACHE) {
         res.on('finish', () => {
-            fs.unlinkSync(filePath)
+            for (const path of new Set([filePath, wavPath])) {
+                fs.rmSync(path, { force: true })
+            }
         })
     }
 };
